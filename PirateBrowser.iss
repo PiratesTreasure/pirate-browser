@@ -1,8 +1,8 @@
 ; Pirate Browser — Inno Setup Installer Script
 
 #define MyAppName "Pirate Browser"
-#define MyAppVersion "1.0"
-#define MyAppPublisher "Chris Ridger"
+#define MyAppVersion "v0.0.2"
+#define MyAppPublisher "PiratesTreasure"
 #define MyAppExeName "Pirate Browser.exe"
 
 [Setup]
