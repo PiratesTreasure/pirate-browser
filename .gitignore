@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Installer output
+installer_output/
+
+# Settings (user specific)
+settings.json
+app_settings.json
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log
