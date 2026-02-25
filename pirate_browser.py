@@ -11,10 +11,90 @@ import json
 import datetime
 import tkinter as tk
 import customtkinter as ctk
+import urllib.request
+import webbrowser
+import base64
+import os
 from pathlib import Path
 
+# Credential storage
+try:
+    import keyring
+    KEYRING_AVAILABLE = True
+except ImportError:
+    KEYRING_AVAILABLE = False
+
+CRED_SERVICE  = "PirateBrowser"
+CRED_USER_KEY = "pb_email"
+CRED_PASS_KEY = "pb_password"
+CREDS_FILE    = Path(__file__).parent / ".pb_creds"
+
 SETTINGS_FILE = Path(__file__).parent / "settings.json"
-GAME_URL = "https://shippingmanager.cc"
+GAME_URL      = "https://shippingmanager.cc"
+
+# ── VERSION & UPDATE CHECK ────────────────────────────────────────────────────
+CURRENT_VERSION  = "0.0.1"
+GITHUB_RELEASES  = "https://api.github.com/repos/PiratesTreasure/pirate-browser/releases/latest"
+RELEASES_PAGE    = "https://github.com/PiratesTreasure/pirate-browser/releases/latest"
+
+
+def check_for_updates():
+    """Returns (latest_version, download_url) or (None, None) on failure."""
+    try:
+        req = urllib.request.Request(
+            GITHUB_RELEASES,
+            headers={"User-Agent": "PirateBrowser"}
+        )
+        with urllib.request.urlopen(req, timeout=5) as r:
+            data = json.loads(r.read().decode())
+        latest = data.get("tag_name", "").lstrip("v")
+        return latest, RELEASES_PAGE
+    except Exception:
+        return None, None
+
+
+def version_tuple(v):
+    try:
+        return tuple(int(x) for x in v.split("."))
+    except Exception:
+        return (0,)
+
+
+def show_update_dialog(latest_version):
+    """Shows a popup telling the user a new version is available."""
+    popup = ctk.CTkToplevel()
+    popup.title("Update Available")
+    popup.geometry("380x200")
+    popup.resizable(False, False)
+    popup.configure(fg_color="#0a0f1e")
+    popup.grab_set()
+    popup.lift()
+
+    ctk.CTkLabel(popup, text="🏴‍☠️  Update Available!",
+                 font=("Segoe UI", 14, "bold"),
+                 text_color="#0db8f4").pack(pady=(24, 6))
+
+    ctk.CTkLabel(popup,
+                 text=f"Version {latest_version} is available.\nYou are running {CURRENT_VERSION}.",
+                 font=("Segoe UI", 11), text_color="#64748b",
+                 justify="center").pack(pady=4)
+
+    btn_frame = ctk.CTkFrame(popup, fg_color="transparent")
+    btn_frame.pack(pady=16)
+
+    ctk.CTkButton(btn_frame, text="⬇  Download Update",
+                  font=("Segoe UI", 11, "bold"),
+                  fg_color="#0db8f4", hover_color="#0a9bd0",
+                  width=160, height=36,
+                  command=lambda: [webbrowser.open(RELEASES_PAGE), popup.destroy()]
+                  ).pack(side="left", padx=6)
+
+    ctk.CTkButton(btn_frame, text="Later",
+                  font=("Segoe UI", 11),
+                  fg_color="#1e2d4a", hover_color="#334155",
+                  text_color="#e2e8f0", width=80, height=36,
+                  command=popup.destroy
+                  ).pack(side="left", padx=6)
 
 DEFAULT_SETTINGS = {
     "fuel_mode":       "off",
@@ -53,6 +133,167 @@ ctk.set_default_color_theme("blue")
 
 
 # ── BROWSER CONTROLLER ────────────────────────────────────────────────────────
+# ── CREDENTIAL MANAGER ───────────────────────────────────────────────────────
+class CredentialManager:
+    """Saves/loads email+password using Windows Credential Manager if available,
+    falling back to a simple encrypted local file."""
+
+    @staticmethod
+    def _obfuscate(text: str) -> str:
+        """Basic obfuscation — not true encryption but better than plaintext."""
+        key = b"PirateBrowserKey1234567890ABCDEF"
+        data = text.encode()
+        result = bytes([data[i] ^ key[i % len(key)] for i in range(len(data))])
+        return base64.b64encode(result).decode()
+
+    @staticmethod
+    def _deobfuscate(text: str) -> str:
+        key = b"PirateBrowserKey1234567890ABCDEF"
+        data = base64.b64decode(text.encode())
+        result = bytes([data[i] ^ key[i % len(key)] for i in range(len(data))])
+        return result.decode()
+
+    @classmethod
+    def save(cls, email: str, password: str):
+        """Save credentials — try keyring first, fall back to file."""
+        if KEYRING_AVAILABLE:
+            try:
+                keyring.set_password(CRED_SERVICE, CRED_USER_KEY, email)
+                keyring.set_password(CRED_SERVICE, CRED_PASS_KEY, password)
+                # Mark that keyring was used
+                CREDS_FILE.write_text(json.dumps({"backend": "keyring"}))
+                return
+            except Exception:
+                pass
+        # Fallback: obfuscated file
+        data = {
+            "backend":  "file",
+            "email":    cls._obfuscate(email),
+            "password": cls._obfuscate(password),
+        }
+        CREDS_FILE.write_text(json.dumps(data))
+
+    @classmethod
+    def load(cls) -> tuple:
+        """Returns (email, password) or (None, None) if not saved."""
+        if not CREDS_FILE.exists():
+            return None, None
+        try:
+            data = json.loads(CREDS_FILE.read_text())
+            if data.get("backend") == "keyring" and KEYRING_AVAILABLE:
+                email    = keyring.get_password(CRED_SERVICE, CRED_USER_KEY)
+                password = keyring.get_password(CRED_SERVICE, CRED_PASS_KEY)
+                return email, password
+            elif data.get("backend") == "file":
+                email    = cls._deobfuscate(data["email"])
+                password = cls._deobfuscate(data["password"])
+                return email, password
+        except Exception:
+            pass
+        return None, None
+
+    @classmethod
+    def clear(cls):
+        """Remove all saved credentials."""
+        if KEYRING_AVAILABLE:
+            try:
+                keyring.delete_password(CRED_SERVICE, CRED_USER_KEY)
+                keyring.delete_password(CRED_SERVICE, CRED_PASS_KEY)
+            except Exception:
+                pass
+        if CREDS_FILE.exists():
+            CREDS_FILE.unlink()
+
+
+# ── LOGIN SCREEN ──────────────────────────────────────────────────────────────
+class LoginScreen:
+    """Shown on first launch or when credentials are cleared."""
+
+    def __init__(self, on_login):
+        self.on_login  = on_login   # callback(email, password, remember)
+        self.root      = ctk.CTk()
+        self.root.title("Pirate Browser — Login")
+        self.root.geometry("380x480+0+0")
+        self.root.resizable(False, False)
+        self.root.configure(fg_color="#0a0f1e")
+        self._build()
+
+    def _build(self):
+        # Header
+        ctk.CTkLabel(self.root, text="🏴‍☠️",
+                     font=("Segoe UI", 48)).pack(pady=(36, 4))
+        ctk.CTkLabel(self.root, text="PIRATE BROWSER",
+                     font=("Segoe UI", 16, "bold"),
+                     text_color="#0db8f4").pack()
+        ctk.CTkLabel(self.root, text="ShippingManager.cc Automation",
+                     font=("Segoe UI", 10),
+                     text_color="#334155").pack(pady=(2, 28))
+
+        # Form
+        form = ctk.CTkFrame(self.root, fg_color="#0d1530", corner_radius=12)
+        form.pack(fill="x", padx=30)
+
+        ctk.CTkLabel(form, text="Email", font=("Segoe UI", 10),
+                     text_color="#64748b", anchor="w").pack(
+            fill="x", padx=16, pady=(16, 2))
+        self._email = ctk.CTkEntry(form, placeholder_text="your@email.com",
+                                   font=("Segoe UI", 11), height=38,
+                                   fg_color="#111827", text_color="#e2e8f0",
+                                   border_color="#1e2d4a")
+        self._email.pack(fill="x", padx=16, pady=(0, 10))
+
+        ctk.CTkLabel(form, text="Password", font=("Segoe UI", 10),
+                     text_color="#64748b", anchor="w").pack(
+            fill="x", padx=16, pady=(0, 2))
+        self._password = ctk.CTkEntry(form, placeholder_text="••••••••",
+                                      show="•", font=("Segoe UI", 11), height=38,
+                                      fg_color="#111827", text_color="#e2e8f0",
+                                      border_color="#1e2d4a")
+        self._password.pack(fill="x", padx=16, pady=(0, 10))
+
+        self._remember = tk.BooleanVar(value=True)
+        ctk.CTkCheckBox(form, text="Remember me", variable=self._remember,
+                        font=("Segoe UI", 10), text_color="#64748b",
+                        fg_color="#0db8f4", hover_color="#0a9bd0",
+                        checkmark_color="white").pack(
+            anchor="w", padx=16, pady=(0, 16))
+
+        self._error_var = tk.StringVar(value="")
+        self._error_lbl = ctk.CTkLabel(self.root, textvariable=self._error_var,
+                                        font=("Segoe UI", 10),
+                                        text_color="#ef4444")
+        self._error_lbl.pack(pady=(8, 0))
+
+        ctk.CTkButton(self.root, text="Login & Launch  🚀",
+                      font=("Segoe UI", 12, "bold"),
+                      fg_color="#0db8f4", hover_color="#0a9bd0",
+                      height=42, corner_radius=8,
+                      command=self._submit).pack(
+            fill="x", padx=30, pady=12)
+
+        # Bind Enter key
+        self.root.bind("<Return>", lambda e: self._submit())
+
+    def _submit(self):
+        email    = self._email.get().strip()
+        password = self._password.get().strip()
+        if not email or not password:
+            self._error_var.set("Please enter your email and password")
+            return
+        if "@" not in email:
+            self._error_var.set("Please enter a valid email address")
+            return
+        self._error_var.set("")
+        self.on_login(email, password, self._remember.get())
+        self.root.destroy()
+
+    def show_error(self, msg: str):
+        self._error_var.set(msg)
+
+    def run(self):
+        self.root.mainloop()
+
+
 class BrowserController:
     def __init__(self, log_fn):
         self.driver = None
@@ -294,6 +535,44 @@ class BrowserController:
             } catch(e) { return false; }
         """)
         return bool(result)
+
+    def auto_login(self, email: str, password: str) -> bool:
+        """Attempts to log in using the game's login form. Returns True on success."""
+        try:
+            from selenium.webdriver.common.by import By
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+
+            # Navigate to login page if not already there
+            if "login" not in self.driver.current_url:
+                self.driver.get("https://shippingmanager.cc/login")
+
+            wait = WebDriverWait(self.driver, 10)
+
+            # Fill email
+            email_field = wait.until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "input[type='email'], input[name='email']")))
+            email_field.clear()
+            email_field.send_keys(email)
+
+            # Fill password
+            pass_field = self.driver.find_element(
+                By.CSS_SELECTOR, "input[type='password'], input[name='password']")
+            pass_field.clear()
+            pass_field.send_keys(password)
+
+            # Click login button
+            login_btn = self.driver.find_element(
+                By.CSS_SELECTOR, "button[type='submit'], .login-btn, button.btn")
+            login_btn.click()
+
+            # Wait for login to complete (URL changes away from /login)
+            time.sleep(3)
+            return "login" not in self.driver.current_url
+
+        except Exception as e:
+            self.log(f"⚠ Auto-login error: {e}")
+            return False
 
     def close(self):
         try:
@@ -672,6 +951,18 @@ class PirateBrowserDashboard:
                       command=self._save
                       ).pack(fill="x", padx=10, pady=14)
 
+        self._sec(page, "🔐 Account")
+        ctk.CTkButton(page, text="🗑  Forget Saved Login",
+                      font=("Segoe UI", 10),
+                      fg_color=C["red"], hover_color="#b91c1c",
+                      text_color="white", height=34, corner_radius=8,
+                      command=self._forget_login
+                      ).pack(fill="x", padx=10, pady=4)
+
+    def _forget_login(self):
+        CredentialManager.clear()
+        self.set_status("✅ Saved login cleared — you'll be asked next launch")
+
     def _save(self):
         try:
             s = self.get_settings()
@@ -735,7 +1026,15 @@ class PirateBrowserDashboard:
         self.root.destroy()
 
     def run(self):
+        # Check for updates in background so it doesn't slow startup
+        threading.Thread(target=self._check_updates, daemon=True).start()
         self.root.mainloop()
+
+    def _check_updates(self):
+        time.sleep(3)   # wait for UI to fully load first
+        latest, url = check_for_updates()
+        if latest and version_tuple(latest) > version_tuple(CURRENT_VERSION):
+            self.root.after(0, lambda: show_update_dialog(latest))
 
 
 # ── ENTRY POINT ───────────────────────────────────────────────────────────────
@@ -744,7 +1043,9 @@ def main():
     def get_s():    return settings
     def save_s(s):  settings.update(s); save_settings(s)
 
-    dash_ref = [None]
+    dash_ref    = [None]
+    saved_creds = [None, None]   # [email, password]
+
     def log_fn(msg):
         print(f"[Pirate Browser] {msg}")
         if dash_ref[0]: dash_ref[0].log(msg)
@@ -759,7 +1060,41 @@ def main():
         on_depart    = lambda d: dash_ref[0].on_depart(d)  if dash_ref[0] else None,
     )
 
-    threading.Thread(target=browser.start, daemon=True).start()
+    # ── Check for saved credentials ───────────────────────────────────────────
+    email, password = CredentialManager.load()
+
+    if not email or not password:
+        # No saved creds — show login screen first
+        def on_login(em, pw, remember):
+            saved_creds[0] = em
+            saved_creds[1] = pw
+            if remember:
+                CredentialManager.save(em, pw)
+
+        login = LoginScreen(on_login)
+        login.run()
+
+        # If user closed login without submitting, exit
+        if not saved_creds[0]:
+            return
+
+        email    = saved_creds[0]
+        password = saved_creds[1]
+    else:
+        log_fn("🔐 Saved credentials found — auto-login enabled")
+
+    # ── Start browser and auto-login ──────────────────────────────────────────
+    def start_browser():
+        browser.start()
+        if browser.ready and email and password:
+            log_fn("🔐 Attempting auto-login…")
+            success = browser.auto_login(email, password)
+            if success:
+                log_fn("✅ Auto-login successful")
+            else:
+                log_fn("⚠ Auto-login failed — please log in manually")
+
+    threading.Thread(target=start_browser, daemon=True).start()
     manager.start()
 
     dash = PirateBrowserDashboard(browser, manager, get_s, save_s)
