@@ -303,6 +303,8 @@ class BrowserController:
 
     def start(self):
         """Try Chrome → Edge → Firefox, use whichever is installed."""
+        if self.ready:
+            return   # prevent double-start
         launched = False
         errors   = []
 
@@ -335,12 +337,20 @@ class BrowserController:
                 from selenium import webdriver
                 from selenium.webdriver.edge.service import Service as ES
                 from selenium.webdriver.edge.options import Options as EO
-                from webdriver_manager.microsoft import EdgeChromiumDriverManager
+
+                EDGE_BINARY  = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+                # Look for msedgedriver.exe next to this script first, then in PATH
+                local_driver = Path(__file__).parent / "msedgedriver.exe"
+                edge_driver  = str(local_driver) if local_driver.exists() else "msedgedriver"
+
                 opts = EO()
                 opts.add_argument("--disable-blink-features=AutomationControlled")
+                opts.add_argument("--no-sandbox")
+                opts.binary_location = EDGE_BINARY
+
                 self.log("⬇ Trying Edge…")
-                self.driver = webdriver.Edge(
-                    service=ES(EdgeChromiumDriverManager().install()), options=opts)
+                svc = ES(edge_driver)
+                self.driver = webdriver.Edge(service=svc, options=opts)
                 self.driver.set_window_position(380, 0)
                 self.driver.set_window_size(1100, 860)
                 self.driver.get(GAME_URL)
@@ -349,6 +359,7 @@ class BrowserController:
                 self.log("✅ Edge opened — please log in to the game")
             except Exception as e:
                 errors.append(f"Edge: {e}")
+                self.driver = None
 
         # ── Firefox ───────────────────────────────────────────────────────────
         if not launched:
@@ -542,33 +553,69 @@ class BrowserController:
             from selenium.webdriver.common.by import By
             from selenium.webdriver.support.ui import WebDriverWait
             from selenium.webdriver.support import expected_conditions as EC
+            from selenium.webdriver.common.keys import Keys
 
-            # Navigate to login page if not already there
-            if "login" not in self.driver.current_url:
-                self.driver.get("https://shippingmanager.cc/login")
+            # Navigate to login page
+            self.driver.get("https://shippingmanager.cc/login")
+            time.sleep(2)
 
             wait = WebDriverWait(self.driver, 10)
 
             # Fill email
             email_field = wait.until(EC.presence_of_element_located(
-                (By.CSS_SELECTOR, "input[type='email'], input[name='email']")))
+                (By.CSS_SELECTOR, "input[type='email'], input[name='email'], input[placeholder*='email' i], input[placeholder*='Email' i]")))
             email_field.clear()
             email_field.send_keys(email)
+            time.sleep(0.5)
 
             # Fill password
             pass_field = self.driver.find_element(
-                By.CSS_SELECTOR, "input[type='password'], input[name='password']")
+                By.CSS_SELECTOR, "input[type='password']")
             pass_field.clear()
             pass_field.send_keys(password)
+            time.sleep(0.5)
 
-            # Click login button
-            login_btn = self.driver.find_element(
-                By.CSS_SELECTOR, "button[type='submit'], .login-btn, button.btn")
-            login_btn.click()
+            # Try clicking submit button — multiple strategies
+            clicked = False
 
-            # Wait for login to complete (URL changes away from /login)
-            time.sleep(3)
-            return "login" not in self.driver.current_url
+            # Strategy 1: button[type=submit]
+            if not clicked:
+                try:
+                    btn = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+                    btn.click()
+                    clicked = True
+                except Exception:
+                    pass
+
+            # Strategy 2: any button containing login/sign in text
+            if not clicked:
+                try:
+                    buttons = self.driver.find_elements(By.TAG_NAME, "button")
+                    for btn in buttons:
+                        txt = btn.text.lower()
+                        if any(w in txt for w in ["login", "sign in", "log in", "submit"]):
+                            btn.click()
+                            clicked = True
+                            break
+                except Exception:
+                    pass
+
+            # Strategy 3: press Enter on the password field
+            if not clicked:
+                try:
+                    pass_field.send_keys(Keys.RETURN)
+                    clicked = True
+                except Exception:
+                    pass
+
+            if not clicked:
+                self.log("⚠ Could not find login button — trying Enter key")
+                pass_field.send_keys(Keys.RETURN)
+
+            # Wait for redirect away from login page
+            time.sleep(4)
+            success = "login" not in self.driver.current_url
+            return success
 
         except Exception as e:
             self.log(f"⚠ Auto-login error: {e}")
@@ -605,6 +652,14 @@ class AutoManager:
         threading.Thread(target=self._cycle, daemon=True).start()
 
     def _loop(self):
+        # Wait for browser to be ready first
+        for _ in range(60):
+            if not self._running: return
+            if self.browser.ready: break
+            time.sleep(1)
+        else:
+            self.log("❌ Browser never became ready"); return
+
         self.log("⏳ Waiting for login…")
         for _ in range(180):
             if not self._running: return
@@ -1047,8 +1102,10 @@ def main():
     saved_creds = [None, None]   # [email, password]
 
     def log_fn(msg):
-        print(f"[Pirate Browser] {msg}")
-        if dash_ref[0]: dash_ref[0].log(msg)
+        if dash_ref[0]:
+            dash_ref[0].log(msg)  # dashboard.log() handles the print
+        else:
+            print(f"[Pirate Browser] {msg}")
 
     browser = BrowserController(log_fn)
     manager = AutoManager(
@@ -1083,7 +1140,7 @@ def main():
     else:
         log_fn("🔐 Saved credentials found — auto-login enabled")
 
-    # ── Start browser and auto-login ──────────────────────────────────────────
+    # ── Start browser, auto-login, then manager — all in one thread ─────────
     def start_browser():
         browser.start()
         if browser.ready and email and password:
@@ -1093,9 +1150,10 @@ def main():
                 log_fn("✅ Auto-login successful")
             else:
                 log_fn("⚠ Auto-login failed — please log in manually")
+        # Start manager only after browser is ready
+        manager.start()
 
     threading.Thread(target=start_browser, daemon=True).start()
-    manager.start()
 
     dash = PirateBrowserDashboard(browser, manager, get_s, save_s)
     dash_ref[0] = dash

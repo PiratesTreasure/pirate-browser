@@ -29,6 +29,7 @@ Name: "startmenuicon"; Description: "Create a &Start Menu shortcut"; GroupDescri
 
 [Files]
 Source: "dist\Pirate Browser.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "msedgedriver.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
