@@ -33,7 +33,7 @@ SETTINGS_FILE = Path(__file__).parent / "settings.json"
 GAME_URL      = "https://shippingmanager.cc"
 
 # ── VERSION & UPDATE CHECK ────────────────────────────────────────────────────
-CURRENT_VERSION  = "0.0.1"
+CURRENT_VERSION  = "0.0.2"
 GITHUB_RELEASES  = "https://api.github.com/repos/PiratesTreasure/pirate-browser/releases/latest"
 RELEASES_PAGE    = "https://github.com/PiratesTreasure/pirate-browser/releases/latest"
 
