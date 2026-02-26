@@ -24,12 +24,23 @@ try:
 except ImportError:
     KEYRING_AVAILABLE = False
 
+# When running as a PyInstaller exe, save data to AppData not Program Files
+def _get_data_dir() -> Path:
+    app_data = os.environ.get("APPDATA")
+    if app_data:
+        d = Path(app_data) / "PirateBrowser"
+    else:
+        d = Path(__file__).parent
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+DATA_DIR      = _get_data_dir()
+SETTINGS_FILE = DATA_DIR / "settings.json"
+
 CRED_SERVICE  = "PirateBrowser"
 CRED_USER_KEY = "pb_email"
 CRED_PASS_KEY = "pb_password"
-CREDS_FILE    = Path(__file__).parent / ".pb_creds"
-
-SETTINGS_FILE = Path(__file__).parent / "settings.json"
+CREDS_FILE    = DATA_DIR / ".pb_creds"
 GAME_URL      = "https://shippingmanager.cc"
 
 # ── VERSION & UPDATE CHECK ────────────────────────────────────────────────────
