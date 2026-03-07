@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚓ Crew Stats — The Salty Sea Dogs</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:    #c9a84c;
+    --gold2:   #f0c96e;
+    --ink:     #0a0c14;
+    --deep:    #0f1220;
+    --panel:   #141825;
+    --border:  #1e2535;
+    --muted:   #4a5270;
+    --text:    #cdd5f0;
+    --red:     #c0392b;
+    --green:   #27ae60;
+    --blue:    #2980b9;
+    --amber:   #e67e22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.01) 60px, rgba(255,255,255,0.01) 61px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.01) 60px, rgba(255,255,255,0.01) 61px);
+    pointer-events: none;
+  }
+
+  /* ── LOGIN GATE ── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+
+  .login-box {
+    background: var(--panel);
+    border: 1px solid var(--gold);
+    padding: 3rem 3.5rem;
+    width: 380px;
+    position: relative;
+    box-shadow: 0 0 60px rgba(201,168,76,0.12), 0 0 120px rgba(0,0,0,0.8);
+  }
+
+  .login-box::before, .login-box::after {
+    content: '✦';
+    position: absolute;
+    color: var(--gold);
+    font-size: 1rem;
+    opacity: 0.5;
+  }
+  .login-box::before { top: 12px; left: 12px; }
+  .login-box::after  { bottom: 12px; right: 12px; }
+
+  .login-skull {
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 12px rgba(201,168,76,0.4));
+  }
+
+  .login-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.1rem;
+    text-align: center;
+    letter-spacing: 0.15em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  .login-field {
+    margin-bottom: 1rem;
+  }
+
+  .login-field label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .login-field input {
+    width: 100%;
+    background: var(--deep);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .login-field input:focus {
+    border-color: var(--gold);
+  }
+
+  .login-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.75rem;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .login-btn:hover  { background: var(--gold2); }
+  .login-btn:active { transform: scale(0.98); }
+
+  .login-error {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 0.75rem;
+    min-height: 1.2em;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── MAIN APP ── */
+  #app { display: none; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba(15,18,32,0.95) 0%, transparent 100%);
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(8px);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+
+  .header-skull { font-size: 1.8rem; filter: drop-shadow(0 0 8px rgba(201,168,76,0.5)); }
+
+  .header-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.3rem;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+  }
+
+  .header-subtitle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .last-updated {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .logout-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── CONTENT ── */
+  .content { padding: 2rem 2.5rem; max-width: 1600px; margin: 0 auto; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  /* ── SUMMARY CARDS ── */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1.2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.4;
+  }
+
+  .card-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .card-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--gold2);
+    line-height: 1;
+  }
+
+  .card-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* ── LEADERBOARD TABLE ── */
+  .table-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+    overflow-x: auto;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr {
+    background: var(--deep);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th.num { text-align: right; }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,37,53,0.8);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  tbody tr:hover { background: rgba(201,168,76,0.05); }
+  tbody tr.active-row { background: rgba(201,168,76,0.08); }
+
+  td {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .rank-num {
+    font-family: 'Cinzel', serif;
+    color: var(--muted);
+    font-size: 0.8rem;
+    width: 2rem;
+  }
+
+  .rank-1 { color: #ffd700; }
+  .rank-2 { color: #c0c0c0; }
+  .rank-3 { color: #cd7f32; }
+
+  .company-name { color: var(--text); font-weight: 600; }
+
+  .role-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .role-ceo     { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+  .role-coo     { border-color: rgba(192,192,192,0.3); color: #c0c0c0; }
+  .role-management { border-color: rgba(41,128,185,0.3); color: #5dade2; }
+
+  .contrib-val { color: var(--text); }
+  .contrib-high { color: #58d68d; }
+  .contrib-zero { color: var(--red); opacity: 0.7; }
+
+  .change-up   { color: #58d68d; font-size: 0.8rem; }
+  .change-down { color: #e74c3c; font-size: 0.8rem; }
+  .change-none { color: var(--muted); font-size: 0.8rem; }
+
+  /* ── CHART SECTION ── */
+  .chart-section { margin-bottom: 2.5rem; }
+
+  .chart-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .member-select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    outline: none;
+    cursor: pointer;
+    min-width: 250px;
+    transition: border-color 0.2s;
+  }
+
+  .member-select:focus { border-color: var(--gold); }
+
+  .metric-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .metric-tab {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .metric-tab:hover { border-color: var(--gold); color: var(--gold); }
+  .metric-tab.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
+
+  .chart-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    position: relative;
+  }
+
+  .chart-box canvas { display: block; }
+
+  /* ── TOP 10 BAR CHART ── */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1rem 2.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── LOADING ── */
+  .loading {
+    text-align: center;
+    padding: 4rem;
+    color: var(--muted);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 1.5rem; height: 1.5rem;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.75rem;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    header { padding: 1rem 1.5rem; }
+    .content { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-skull">☠️</div>
+    <div class="login-title">Crew Intelligence</div>
+    <div class="login-field">
+      <label>Captain's Name</label>
+      <input type="text" id="login-user" autocomplete="username" placeholder="Enter username">
+    </div>
+    <div class="login-field">
+      <label>Secret Code</label>
+      <input type="password" id="login-pass" autocomplete="current-password" placeholder="Enter password">
+    </div>
+    <button class="login-btn" onclick="attemptLogin()">⚓ Board the Ship</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <div class="header-skull">🏴‍☠️</div>
+      <div>
+        <div class="header-title">The Salty Sea Dogs</div>
+        <div class="header-subtitle">Alliance Crew Intelligence Dashboard</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="last-updated" id="last-updated">Loading…</div>
+      <button class="logout-btn" onclick="logout()">Abandon Ship</button>
+    </div>
+  </header>
+
+  <div class="content" id="main-content">
+    <div class="loading"><span class="spinner"></span> Loading crew data…</div>
+  </div>
+
+  <footer>⚓ The Salty Sea Dogs — Alliance Intelligence — Restricted Access</footer>
+</div>
+
+<script>
+// ── CRYPTO UTILS ─────────────────────────────────────────────────────────────
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function deriveKey(password, salt) {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return new Uint8Array(bits);
+}
+
+function xorDecrypt(cipherBytes, key) {
+  const out = new Uint8Array(cipherBytes.length);
+  let block = key;
+  let ki = 0;
+  for (let i = 0; i < cipherBytes.length; i++) {
+    if (ki >= block.length) {
+      // Extend key via SHA-256 chain (mirror Python logic)
+      block = new Uint8Array(32);
+      ki = 0;
+      // Simple extension: re-hash previous block
+      // We'll use a synchronous approximation for the stream
+    }
+    out[i] = cipherBytes[i] ^ block[ki];
+    ki++;
+  }
+  return out;
+}
+
+async function decryptPayload(encryptedB64, password) {
+  const raw    = Uint8Array.from(atob(encryptedB64), c => c.charCodeAt(0));
+  const salt   = raw.slice(0, 16);
+  // skip tag bytes 16-48
+  const cipher = raw.slice(48);
+
+  const key = await deriveKey(password, salt);
+
+  async function sha256bytes(bytes) {
+    const buf = await crypto.subtle.digest('SHA-256', bytes);
+    return new Uint8Array(buf);
+  }
+
+  // Build full keystream by chaining SHA-256 blocks - mirrors Python exactly
+  const numBlocks = Math.ceil(cipher.length / 32);
+  let keystream = new Uint8Array(numBlocks * 32);
+  let block = key;
+  for (let b = 0; b < numBlocks; b++) {
+    keystream.set(block, b * 32);
+    block = await sha256bytes(block);
+  }
+
+  const out = new Uint8Array(cipher.length);
+  for (let i = 0; i < cipher.length; i++) {
+    out[i] = cipher[i] ^ keystream[i];
+  }
+
+  const plaintext = new TextDecoder().decode(out);
+  return JSON.parse(plaintext);
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let appData       = null;
+let activeUser    = null;
+let activeMetric  = 'contribution_24h';
+let lineChart     = null;
+let barChart1     = null;
+let barChart2     = null;
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+async function attemptLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-error');
+  err.textContent = '';
+
+  if (!user || !pass) { err.textContent = 'Enter both username and password.'; return; }
+
+  const btn = document.querySelector('.login-btn');
+  btn.textContent = '⏳ Checking…';
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch('https://raw.githubusercontent.com/PiratesTreasure/pirate-dashboard/main/public/member_data.json');
+    if (!resp.ok) throw new Error('Data not available yet — run the tracker first.');
+    const raw = await resp.json();
+
+    // Verify credentials
+    const inputHash = await sha256hex(user + ':' + pass);
+    if (inputHash !== raw.auth_hash) {
+      err.textContent = 'Wrong username or password.';
+      btn.textContent = '⚓ Board the Ship'; btn.disabled = false;
+      return;
+    }
+
+    // Decrypt data
+    const decrypted = await decryptPayload(raw.payload, pass);
+    appData = decrypted;
+
+    // Store session (in memory only — not localStorage)
+    sessionStorage.setItem('_sd_auth', '1');
+
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderApp();
+
+  } catch(e) {
+    err.textContent = e.message || 'Login failed.';
+    btn.textContent = '⚓ Board the Ship'; btn.disabled = false;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    attemptLogin();
+  }
+});
+
+function logout() {
+  sessionStorage.removeItem('_sd_auth');
+  appData = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function fmt(n) { return (n||0).toLocaleString(); }
+
+function fmtChange(curr, prev) {
+  if (prev === undefined || prev === null) return { text: '—', cls: 'change-none' };
+  const diff = (curr||0) - (prev||0);
+  if (diff === 0) return { text: '—', cls: 'change-none' };
+  const pct = prev > 0 ? ((diff/prev)*100).toFixed(1) : null;
+  const sign = diff > 0 ? '+' : '';
+  const text = pct ? `${sign}${fmt(diff)} (${sign}${pct}%)` : `${sign}${fmt(diff)}`;
+  return { text, cls: diff > 0 ? 'change-up' : 'change-down' };
+}
+
+function roleClass(role) {
+  return { ceo: 'role-ceo', coo: 'role-coo', management: 'role-management' }[role] || '';
+}
+
+function roleIcon(role) {
+  return { ceo: '👑', coo: '⭐', management: '🔱' }[role] || '⚓';
+}
+
+function getPrevMember(uid) {
+  if (!appData?.history?.length || appData.history.length < 2) return null;
+  const prev = appData.history[appData.history.length - 2];
+  return prev?.members?.find(m => m.user_id === uid) || null;
+}
+
+function get24hAgoMember(uid) {
+  if (!appData?.history?.length) return null;
+  const now    = Date.now() / 1000;
+  const target = now - 86400;
+  let best = null, bestDiff = Infinity;
+  for (const snap of appData.history) {
+    const d = Math.abs(snap.timestamp - target);
+    if (d < bestDiff) { bestDiff = d; best = snap; }
+  }
+  return best?.members?.find(m => m.user_id === uid) || null;
+}
+
+function renderApp() {
+  const members = appData.members || [];
+  const sorted  = [...members].sort((a,b) => (b.contribution_season||0) - (a.contribution_season||0));
+
+  // Update header
+  const dt = new Date(appData.updated_at);
+  document.getElementById('last-updated').textContent =
+    `Updated ${dt.toLocaleDateString('en-GB')} ${dt.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}`;
+
+  // Summary stats
+  const total24h     = members.reduce((s,m) => s + (m.contribution_24h||0), 0);
+  const totalSeason  = members.reduce((s,m) => s + (m.contribution_season||0), 0);
+  const totalDeps    = members.reduce((s,m) => s + (m.departures_24h||0), 0);
+  const activeCount  = members.filter(m => (m.contribution_24h||0) > 0).length;
+
+  activeUser = sorted[0]?.user_id;
+
+  document.getElementById('main-content').innerHTML = `
+    <!-- Summary cards -->
+    <div class="section-title">⚓ Alliance Overview</div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">24h Contribution</div>
+        <div class="card-value">${fmt(total24h)}</div>
+        <div class="card-sub">${members.length} members total</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Season Contribution</div>
+        <div class="card-value">${fmt(totalSeason)}</div>
+        <div class="card-sub">Current season</div>
+      </div>
+      <div class="card">
+        <div class="card-label">24h Departures</div>
+        <div class="card-value">${fmt(totalDeps)}</div>
+        <div class="card-sub">Vessels departed today</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Active Members</div>
+        <div class="card-value">${activeCount}<span style="font-size:1rem;color:var(--muted)">/${members.length}</span></div>
+        <div class="card-sub">Contributing in last 24h</div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="section-title">🏆 Crew Leaderboard — 24h Contribution</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th class="num">24h Contrib</th>
+            <th class="num">vs Last Hour</th>
+            <th class="num">vs 24h Ago</th>
+            <th class="num">24h Deps</th>
+            <th class="num">Season Contrib</th>
+            <th class="num">Season Deps</th>
+            <th class="num">Last Season Contrib</th>
+            <th>Last Login</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Member line chart -->
+    <div class="chart-section">
+      <div class="section-title">📈 Member Activity Over Time</div>
+      <div class="chart-controls">
+        <select class="member-select" id="member-select" onchange="updateLineChart()">
+          ${sorted.map(m => `<option value="${m.user_id}">${m.company_name}</option>`).join('')}
+        </select>
+        <div class="metric-tabs">
+          <button class="metric-tab active" onclick="setMetric('contribution_24h', this)">24h Contribution</button>
+          <button class="metric-tab" onclick="setMetric('departures_24h', this)">24h Departures</button>
+          <button class="metric-tab" onclick="setMetric('contribution_season', this)">Season Contribution</button>
+        </div>
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.75rem;letter-spacing:0.04em">
+        Each point = one hourly snapshot. Hourly data kept for 14 days, then downsampled to daily averages for up to 90 days.
+        Click any row in the leaderboard to jump to that member's chart.
+      </div>
+      <div class="chart-box" style="height:320px">
+        <canvas id="line-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Bar charts row -->
+    <div class="section-title">📊 Alliance Snapshot — Season Contribution (left) · 24h Contribution (right)</div>
+    <div class="charts-row">
+      <div class="chart-box" style="height:320px">
+        <canvas id="bar-chart-1"></canvas>
+      </div>
+      <div class="chart-box" style="height:320px">
+        <canvas id="bar-chart-2"></canvas>
+      </div>
+    </div>
+  `;
+
+  renderLeaderboard(sorted);
+  renderLineChart();
+  renderBarCharts(sorted);
+}
+
+function renderLeaderboard(sorted) {
+  const tbody = document.getElementById('leaderboard-body');
+  tbody.innerHTML = sorted.map((m, i) => {
+    const rank    = i + 1;
+    const prev    = getPrevMember(m.user_id);
+    const p24     = get24hAgoMember(m.user_id);
+    const chHour  = fmtChange(m.contribution_24h, prev?.contribution_24h);
+    const ch24    = fmtChange(m.contribution_24h, p24?.contribution_24h);
+    const login   = m.time_last_login
+      ? new Date(m.time_last_login * 1000).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
+      : '—';
+    const rankCls = rank <= 3 ? `rank-${rank}` : '';
+    const cCls    = (m.contribution_24h||0) === 0 ? 'contrib-zero' : (m.contribution_24h||0) >= 8000 ? 'contrib-high' : 'contrib-val';
+    return `<tr onclick="selectMember(${m.user_id})" id="row-${m.user_id}">
+      <td class="rank-num ${rankCls}">${rank}</td>
+      <td class="company-name">${m.company_name}</td>
+      <td><span class="role-badge ${roleClass(m.role)}">${roleIcon(m.role)} ${m.role}</span></td>
+      <td class="num ${cCls}">${fmt(m.contribution_24h)}</td>
+      <td class="num"><span class="${chHour.cls}">${chHour.text}</span></td>
+      <td class="num"><span class="${ch24.cls}">${ch24.text}</span></td>
+      <td class="num">${fmt(m.departures_24h)}</td>
+      <td class="num">${fmt(m.contribution_season)}</td>
+      <td class="num">${fmt(m.departures_season)}</td>
+      <td class="num" style="color:var(--muted)">${fmt(m.contribution_last_season || 0)}</td>
+      <td style="color:var(--muted);font-size:0.8rem">${login}</td>
+    </tr>`;
+  }).join('');
+}
+
+function selectMember(uid) {
+  activeUser = uid;
+  document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('active-row'));
+  const row = document.getElementById(`row-${uid}`);
+  if (row) row.classList.add('active-row');
+  document.getElementById('member-select').value = uid;
+  updateLineChart();
+}
+
+function setMetric(metric, btn) {
+  activeMetric = metric;
+  document.querySelectorAll('.metric-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateLineChart();
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#141825',
+      borderColor: '#1e2535',
+      borderWidth: 1,
+      titleColor: '#c9a84c',
+      bodyColor: '#cdd5f0',
+      padding: 10,
+    }
+  },
+  scales: {
+    x: {
+      ticks: { color: '#4a5270', font: { size: 10 }, maxTicksLimit: 12, maxRotation: 45 },
+      grid:  { color: 'rgba(30,37,53,0.6)' },
+    },
+    y: {
+      ticks: { color: '#4a5270', font: { size: 10 } },
+      grid:  { color: 'rgba(30,37,53,0.6)' },
+    }
+  }
+};
+
+function getMetricLabel(metric) {
+  return { contribution_24h: '24h Contribution', departures_24h: '24h Departures', contribution_season: 'Season Contribution' }[metric] || metric;
+}
+
+function getMetricColor(metric) {
+  return { contribution_24h: '#5dade2', departures_24h: '#58d68d', contribution_season: '#f0b429' }[metric] || '#c9a84c';
+}
+
+function renderLineChart() {
+  if (lineChart) { lineChart.destroy(); lineChart = null; }
+  const uid     = parseInt(document.getElementById('member-select')?.value || activeUser);
+  const allHistory = appData?.history || [];
+  // Graph shows last 14 days only
+  const cutoff14d = Date.now() / 1000 - (14 * 86400);
+  const history   = allHistory.filter(s => s.timestamp >= cutoff14d);
+  const labels  = history.map(s => {
+    const d = new Date(s.timestamp * 1000);
+    return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  });
+  const values = history.map(s => {
+    const m = s.members?.find(m => m.user_id === uid);
+    return m ? (m[activeMetric] || 0) : null;
+  });
+  const color = getMetricColor(activeMetric);
+  const ctx   = document.getElementById('line-chart');
+  if (!ctx) return;
+  lineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: getMetricLabel(activeMetric),
+        data: values,
+        borderColor: color,
+        backgroundColor: color.replace(')', ',0.08)').replace('rgb','rgba'),
+        borderWidth: 2,
+        pointRadius: history.length > 48 ? 0 : 3,
+        pointHoverRadius: 5,
+        tension: 0.3,
+        fill: true,
+        spanGaps: true,
+      }]
+    },
+    options: { ...CHART_DEFAULTS, plugins: { ...CHART_DEFAULTS.plugins, legend: { display: true, labels: { color: '#c9a84c', font: { family: 'Crimson Pro' } } } } }
+  });
+}
+
+function updateLineChart() {
+  renderLineChart();
+}
+
+function renderBarCharts(sorted) {
+  const top10 = sorted.slice(0, 10);
+  const names = top10.map(m => m.company_name.length > 18 ? m.company_name.slice(0,16)+'…' : m.company_name);
+
+  // Chart 1: Season contribution top 10
+  if (barChart1) barChart1.destroy();
+  const ctx1 = document.getElementById('bar-chart-1');
+  if (ctx1) barChart1 = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{
+        label: 'Season Contribution',
+        data: top10.map(m => m.contribution_season || 0),
+        backgroundColor: top10.map((m,i) => i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#c9a84c'),
+        borderRadius: 2,
+      }]
+    },
+    options: { ...CHART_DEFAULTS,
+      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: true, labels: { color: '#c9a84c' } } },
+      indexAxis: 'y'
+    }
+  });
+
+  // Chart 2: 24h contribution top 10
+  if (barChart2) barChart2.destroy();
+  const sorted24h = [...sorted].sort((a,b) => (b.contribution_24h||0) - (a.contribution_24h||0)).slice(0,10);
+  const ctx2 = document.getElementById('bar-chart-2');
+  if (ctx2) barChart2 = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: sorted24h.map(m => m.company_name.length > 18 ? m.company_name.slice(0,16)+'…' : m.company_name),
+      datasets: [{
+        label: '24h Contribution',
+        data: sorted24h.map(m => m.contribution_24h || 0),
+        backgroundColor: '#5dade2',
+        borderRadius: 2,
+      }]
+    },
+    options: { ...CHART_DEFAULTS,
+      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: true, labels: { color: '#c9a84c' } } },
+      indexAxis: 'y'
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pirate Bay Bunker Prices</title>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=MedievalSharp&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --accent: #f97316;
+    --accent2: #38bdf8;
+    --fuel: #f97316;
+    --co2: #34d399;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --highlight-bg: rgba(249,115,22,0.15);
+    --highlight-border: #f97316;
+    --row-alt: rgba(255,255,255,0.02);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  body {
+    font-family: 'IM Fell English', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 10px rgba(249,115,22,0.2);
+  }
+  .logo-text { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em; font-family: 'Pirata One', cursive; font-size: 1.3rem; }
+  .logo-text span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.3);
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 600; color: var(--co2);
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--co2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Main */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+  /* Date + stat bar */
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .date-block h1 {
+    font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .date-block .subtitle {
+    font-size: 0.8rem; color: var(--muted); margin-top: 4px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px; padding: 8px 14px;
+    box-shadow: inset 0 1px 0 rgba(249,115,22,0.04);
+    display: flex; flex-direction: column; gap: 2px;
+    min-width: 90px;
+  }
+  .stat-pill .label { font-size: 0.65rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-pill .val { font-size: 1rem; font-weight: 700; font-family: 'Share Tech Mono', monospace; }
+  .stat-pill.fuel .val { color: var(--fuel); }
+  .stat-pill.co2 .val { color: var(--co2); }
+
+  /* Day selector */
+  .day-selector-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(249,115,22,0.05);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .day-selector-label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .day-btns { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+  .day-btn {
+    min-width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text); font-family: 'IM Fell English', serif;
+    font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .day-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .day-btn.active {
+    background: var(--accent); border-color: var(--accent);
+    color: white;
+  }
+  .day-btn.today-day {
+    border-color: var(--co2); color: var(--co2);
+  }
+  .day-btn.today-day.active {
+    background: var(--co2); border-color: var(--co2); color: #0a0e1a;
+  }
+
+  /* Current time row info */
+  .current-info {
+    background: var(--highlight-bg);
+    border: 1px solid rgba(249,115,22,0.3);
+    border-radius: 10px; padding: 10px 16px;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 0.85rem; flex-wrap: wrap; gap: 8px;
+  }
+  .current-info .ci-label { color: var(--muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .current-info .ci-time { font-family: 'Share Tech Mono', monospace; font-weight: 600; color: var(--accent); font-size: 1rem; }
+  .current-info .ci-prices { display: flex; gap: 16px; margin-left: auto; }
+  .current-info .ci-price { display: flex; flex-direction: column; align-items: flex-end; }
+  .current-info .ci-price .ci-plabel { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .current-info .ci-price .ci-pval { font-family: 'Share Tech Mono', monospace; font-weight: 700; font-size: 1rem; }
+  .ci-fuel { color: var(--fuel); }
+  .ci-co2c { color: var(--co2); }
+
+  /* Table */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3), inset 0 0 60px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  .table-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .table-header {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr;
+    padding: 10px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent);
+    font-family: 'Pirata One', cursive; font-size: 0.85rem;
+  }
+  .table-header div:not(:first-child) { text-align: right; }
+
+  .table-body { max-height: 600px; overflow-y: auto; }
+  .table-body::-webkit-scrollbar { width: 6px; }
+  .table-body::-webkit-scrollbar-track { background: transparent; }
+  .table-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .table-row {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    align-items: center;
+  }
+  .table-row:last-child { border-bottom: none; }
+  .table-row.alt { background: var(--row-alt); }
+  .table-row:hover { background: rgba(249,115,22,0.05); }
+  .table-row.current-row {
+    background: var(--highlight-bg) !important;
+    border-left: 3px solid var(--highlight-border);
+    padding-left: 17px;
+  }
+
+  .time-cell {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .now-tag {
+    background: var(--accent); color: #0d0a06; font-family: 'Pirata One', cursive;
+    font-size: 0.55rem; font-weight: 700; padding: 2px 5px;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .price-cell {
+    text-align: right;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.88rem; font-weight: 600;
+  }
+  .price-cell.fuel-col { color: var(--fuel); }
+  .price-cell.co2-col { color: var(--co2); }
+  .current-row .price-cell { font-weight: 700; font-size: 0.95rem; }
+
+  /* Summary section */
+  .summary-section { margin-top: 2.5rem; }
+  .section-title {
+    font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; font-family: 'Pirata One', cursive;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .summary-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .summary-card.active-card { border-color: var(--accent); background: var(--highlight-bg); }
+  .summary-card .card-day { font-size: 0.65rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .summary-card .card-prices { display: flex; flex-direction: column; gap: 3px; }
+  .summary-card .card-price {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.75rem;
+  }
+  .summary-card .card-price .cp-label { color: var(--muted); font-size: 0.65rem; }
+  .summary-card .card-price .cp-val { font-family: 'Share Tech Mono', monospace; font-weight: 600; }
+  .cp-fuel { color: var(--fuel); }
+  .cp-co2 { color: var(--co2); }
+
+  .tz-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px; border-radius: 8px;
+    font-family: 'IM Fell English', serif; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: border 0.2s; outline: none;
+  }
+  .tz-select:hover, .tz-select:focus { border-color: var(--accent); }
+
+  .footer {
+    margin-top: 3rem; padding: 1.5rem 0;
+    border-top: 1px solid var(--border);
+    text-align: center; font-size: 0.75rem; color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 1rem; }
+    .header { padding: 0 1rem; }
+    .top-bar { flex-direction: column; align-items: flex-start; }
+    .current-info { flex-direction: column; align-items: flex-start; }
+    .current-info .ci-prices { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">☠</div>
+    <div class="logo-text">Pirate Bay <span>Bunker</span> Prices</div>
+  </div>
+  <div class="header-right">
+    <a href="https://pirate-crew.netlify.app" style="
+      display:flex;align-items:center;gap:6px;
+      background:rgba(201,168,76,0.1);
+      border:1px solid rgba(201,168,76,0.35);
+      padding:4px 12px;border-radius:4px;
+      font-size:0.75rem;font-weight:600;
+      color:#c9a84c;text-decoration:none;
+      font-family:'Share Tech Mono',monospace;
+      letter-spacing:0.05em;
+      transition:background 0.2s;
+    " onmouseover="this.style.background='rgba(201,168,76,0.2)'"
+       onmouseout="this.style.background='rgba(201,168,76,0.1)'">
+      🏴‍☠️ CREW STATS
+    </a>
+    <div class="live-badge"><div class="live-dot"></div> <span id="liveBadgeLabel">GMT LIVE</span></div>
+    <select class="tz-select" id="tzSelect" onchange="setTimezone(this.value)"></select>
+  </div>
+</div>
+
+<div class="container">
+  <div class="top-bar">
+    <div class="date-block">
+      <h1 id="dateHeading">—</h1>
+      <div class="subtitle" id="dateSubtitle">Loading...</div>
+    </div>
+    <div class="stat-pills" id="statPills"></div>
+  </div>
+
+  <div class="day-selector-wrap">
+    <div class="day-selector-label">Day</div>
+    <div class="day-btns" id="dayBtns"></div>
+  </div>
+
+  <div class="current-info" id="currentInfo"></div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div id="tableHeaderTime">Time Interval (GMT)</div>
+      <div>Fuel ($/ton)</div>
+      <div>CO₂ ($/ton)</div>
+    </div>
+    <div class="table-body" id="tableBody"></div>
+  </div>
+
+  <div class="summary-section">
+    <div class="section-title">All Days Summary</div>
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+
+  <div class="footer" id="footer">Last updated: —</div>
+</div>
+
+<script>
+const DATA = [{"day":1,"intervals":[{"start":"00:00","end":"00:30","fuel":630,"co2":8},{"start":"00:30","end":"01:00","fuel":870,"co2":10},{"start":"01:00","end":"01:30","fuel":370,"co2":7},{"start":"01:30","end":"02:00","fuel":660,"co2":14},{"start":"02:00","end":"02:30","fuel":880,"co2":21},{"start":"02:30","end":"03:00","fuel":740,"co2":10},{"start":"03:00","end":"03:30","fuel":460,"co2":16},{"start":"03:30","end":"04:00","fuel":690,"co2":16},{"start":"04:00","end":"04:30","fuel":390,"co2":14},{"start":"04:30","end":"05:00","fuel":350,"co2":10},{"start":"05:00","end":"05:30","fuel":700,"co2":15},{"start":"05:30","end":"06:00","fuel":620,"co2":24},{"start":"06:00","end":"06:30","fuel":370,"co2":15},{"start":"06:30","end":"07:00","fuel":910,"co2":12},{"start":"07:00","end":"07:30","fuel":750,"co2":6},{"start":"07:30","end":"08:00","fuel":350,"co2":6},{"start":"08:00","end":"08:30","fuel":630,"co2":8},{"start":"08:30","end":"09:00","fuel":740,"co2":11},{"start":"09:00","end":"09:30","fuel":860,"co2":16},{"start":"09:30","end":"10:00","fuel":710,"co2":16},{"start":"10:00","end":"10:30","fuel":490,"co2":25},{"start":"10:30","end":"11:00","fuel":970,"co2":20},{"start":"11:00","end":"11:30","fuel":500,"co2":9},{"start":"11:30","end":"12:00","fuel":410,"co2":22},{"start":"12:00","end":"12:30","fuel":950,"co2":10},{"start":"12:30","end":"13:00","fuel":710,"co2":14},{"start":"13:00","end":"13:30","fuel":590,"co2":10},{"start":"13:30","end":"14:00","fuel":800,"co2":8},{"start":"14:00","end":"14:30","fuel":870,"co2":22},{"start":"14:30","end":"15:00","fuel":990,"co2":14},{"start":"15:00","end":"15:30","fuel":980,"co2":15},{"start":"15:30","end":"16:00","fuel":630,"co2":15},{"start":"16:00","end":"16:30","fuel":840,"co2":13},{"start":"16:30","end":"17:00","fuel":810,"co2":7},{"start":"17:00","end":"17:30","fuel":940,"co2":25},{"start":"17:30","end":"18:00","fuel":680,"co2":9},{"start":"18:00","end":"18:30","fuel":410,"co2":20},{"start":"18:30","end":"19:00","fuel":850,"co2":15},{"start":"19:00","end":"19:30","fuel":640,"co2":14},{"start":"19:30","end":"20:00","fuel":900,"co2":6},{"start":"20:00","end":"20:30","fuel":940,"co2":14},{"start":"20:30","end":"21:00","fuel":930,"co2":15},{"start":"21:00","end":"21:30","fuel":900,"co2":16},{"start":"21:30","end":"22:00","fuel":730,"co2":21},{"start":"22:00","end":"22:30","fuel":710,"co2":7},{"start":"22:30","end":"23:00","fuel":350,"co2":21},{"start":"23:00","end":"23:30","fuel":620,"co2":22},{"start":"23:30","end":"23:59","fuel":700,"co2":10}]},{"day":2,"intervals":[{"start":"00:00","end":"00:30","fuel":680,"co2":11},{"start":"00:30","end":"01:00","fuel":750,"co2":11},{"start":"01:00","end":"01:30","fuel":780,"co2":14},{"start":"01:30","end":"02:00","fuel":900,"co2":18},{"start":"02:00","end":"02:30","fuel":630,"co2":24},{"start":"02:30","end":"03:00","fuel":350,"co2":21},{"start":"03:00","end":"03:30","fuel":500,"co2":7},{"start":"03:30","end":"04:00","fuel":620,"co2":12},{"start":"04:00","end":"04:30","fuel":640,"co2":6},{"start":"04:30","end":"05:00","fuel":800,"co2":12},{"start":"05:00","end":"05:30","fuel":720,"co2":24},{"start":"05:30","end":"06:00","fuel":980,"co2":15},{"start":"06:00","end":"06:30","fuel":590,"co2":11},{"start":"06:30","end":"07:00","fuel":930,"co2":19},{"start":"07:00","end":"07:30","fuel":420,"co2":12},{"start":"07:30","end":"08:00","fuel":480,"co2":24},{"start":"08:00","end":"08:30","fuel":860,"co2":8},{"start":"08:30","end":"09:00","fuel":520,"co2":9},{"start":"09:00","end":"09:30","fuel":580,"co2":13},{"start":"09:30","end":"10:00","fuel":710,"co2":21},{"start":"10:00","end":"10:30","fuel":630,"co2":7},{"start":"10:30","end":"11:00","fuel":430,"co2":23},{"start":"11:00","end":"11:30","fuel":770,"co2":8},{"start":"11:30","end":"12:00","fuel":490,"co2":25},{"start":"12:00","end":"12:30","fuel":390,"co2":18},{"start":"12:30","end":"13:00","fuel":360,"co2":20},{"start":"13:00","end":"13:30","fuel":720,"co2":25},{"start":"13:30","end":"14:00","fuel":450,"co2":11},{"start":"14:00","end":"14:30","fuel":830,"co2":24},{"start":"14:30","end":"15:00","fuel":540,"co2":17},{"start":"15:00","end":"15:30","fuel":730,"co2":17},{"start":"15:30","end":"16:00","fuel":900,"co2":7},{"start":"16:00","end":"16:30","fuel":770,"co2":24},{"start":"16:30","end":"17:00","fuel":740,"co2":13},{"start":"17:00","end":"17:30","fuel":990,"co2":21},{"start":"17:30","end":"18:00","fuel":400,"co2":7},{"start":"18:00","end":"18:30","fuel":530,"co2":20},{"start":"18:30","end":"19:00","fuel":410,"co2":6},{"start":"19:00","end":"19:30","fuel":810,"co2":21},{"start":"19:30","end":"20:00","fuel":750,"co2":20},{"start":"20:00","end":"20:30","fuel":500,"co2":10},{"start":"20:30","end":"21:00","fuel":540,"co2":5},{"start":"21:00","end":"21:30","fuel":660,"co2":11},{"start":"21:30","end":"22:00","fuel":570,"co2":17},{"start":"22:00","end":"22:30","fuel":480,"co2":18},{"start":"22:30","end":"23:00","fuel":560,"co2":10},{"start":"23:00","end":"23:30","fuel":810,"co2":16},{"start":"23:30","end":"23:59","fuel":670,"co2":18}]},{"day":3,"intervals":[{"start":"00:00","end":"00:30","fuel":430,"co2":13},{"start":"00:30","end":"01:00","fuel":440,"co2":17},{"start":"01:00","end":"01:30","fuel":720,"co2":16},{"start":"01:30","end":"02:00","fuel":760,"co2":24},{"start":"02:00","end":"02:30","fuel":410,"co2":19},{"start":"02:30","end":"03:00","fuel":990,"co2":21},{"start":"03:00","end":"03:30","fuel":830,"co2":10},{"start":"03:30","end":"04:00","fuel":900,"co2":25},{"start":"04:00","end":"04:30","fuel":670,"co2":17},{"start":"04:30","end":"05:00","fuel":550,"co2":19},{"start":"05:00","end":"05:30","fuel":660,"co2":21},{"start":"05:30","end":"06:00","fuel":1000,"co2":12},{"start":"06:00","end":"06:30","fuel":660,"co2":24},{"start":"06:30","end":"07:00","fuel":360,"co2":13},{"start":"07:00","end":"07:30","fuel":360,"co2":8},{"start":"07:30","end":"08:00","fuel":350,"co2":16},{"start":"08:00","end":"08:30","fuel":970,"co2":20},{"start":"08:30","end":"09:00","fuel":720,"co2":17},{"start":"09:00","end":"09:30","fuel":840,"co2":5},{"start":"09:30","end":"10:00","fuel":390,"co2":17},{"start":"10:00","end":"10:30","fuel":950,"co2":16},{"start":"10:30","end":"11:00","fuel":930,"co2":14},{"start":"11:00","end":"11:30","fuel":500,"co2":12},{"start":"11:30","end":"12:00","fuel":870,"co2":7},{"start":"12:00","end":"12:30","fuel":870,"co2":21},{"start":"12:30","end":"13:00","fuel":570,"co2":16},{"start":"13:00","end":"13:30","fuel":450,"co2":18},{"start":"13:30","end":"14:00","fuel":650,"co2":22},{"start":"14:00","end":"14:30","fuel":470,"co2":25},{"start":"14:30","end":"15:00","fuel":380,"co2":15},{"start":"15:00","end":"15:30","fuel":610,"co2":13},{"start":"15:30","end":"16:00","fuel":580,"co2":7},{"start":"16:00","end":"16:30","fuel":740,"co2":19},{"start":"16:30","end":"17:00","fuel":560,"co2":15},{"start":"17:00","end":"17:30","fuel":550,"co2":18},{"start":"17:30","end":"18:00","fuel":590,"co2":5},{"start":"18:00","end":"18:30","fuel":500,"co2":9},{"start":"18:30","end":"19:00","fuel":390,"co2":16},{"start":"19:00","end":"19:30","fuel":410,"co2":22},{"start":"19:30","end":"20:00","fuel":670,"co2":20},{"start":"20:00","end":"20:30","fuel":470,"co2":13},{"start":"20:30","end":"21:00","fuel":790,"co2":17},{"start":"21:00","end":"21:30","fuel":600,"co2":12},{"start":"21:30","end":"22:00","fuel":850,"co2":9},{"start":"22:00","end":"22:30","fuel":940,"co2":21},{"start":"22:30","end":"23:00","fuel":460,"co2":7},{"start":"23:00","end":"23:30","fuel":800,"co2":6},{"start":"23:30","end":"23:59","fuel":420,"co2":5}]},{"day":4,"intervals":[{"start":"00:00","end":"00:30","fuel":800,"co2":21},{"start":"00:30","end":"01:00","fuel":390,"co2":15},{"start":"01:00","end":"01:30","fuel":610,"co2":8},{"start":"01:30","end":"02:00","fuel":790,"co2":10},{"start":"02:00","end":"02:30","fuel":900,"co2":23},{"start":"02:30","end":"03:00","fuel":900,"co2":8},{"start":"03:00","end":"03:30","fuel":640,"co2":5},{"start":"03:30","end":"04:00","fuel":700,"co2":24},{"start":"04:00","end":"04:30","fuel":800,"co2":6},{"start":"04:30","end":"05:00","fuel":410,"co2":23},{"start":"05:00","end":"05:30","fuel":640,"co2":19},{"start":"05:30","end":"06:00","fuel":360,"co2":23},{"start":"06:00","end":"06:30","fuel":360,"co2":24},{"start":"06:30","end":"07:00","fuel":460,"co2":21},{"start":"07:00","end":"07:30","fuel":560,"co2":22},{"start":"07:30","end":"08:00","fuel":580,"co2":16},{"start":"08:00","end":"08:30","fuel":720,"co2":21},{"start":"08:30","end":"09:00","fuel":430,"co2":6},{"start":"09:00","end":"09:30","fuel":770,"co2":24},{"start":"09:30","end":"10:00","fuel":1000,"co2":14},{"start":"10:00","end":"10:30","fuel":960,"co2":6},{"start":"10:30","end":"11:00","fuel":590,"co2":22},{"start":"11:00","end":"11:30","fuel":950,"co2":9},{"start":"11:30","end":"12:00","fuel":860,"co2":23},{"start":"12:00","end":"12:30","fuel":870,"co2":16},{"start":"12:30","end":"13:00","fuel":630,"co2":13},{"start":"13:00","end":"13:30","fuel":620,"co2":18},{"start":"13:30","end":"14:00","fuel":440,"co2":20},{"start":"14:00","end":"14:30","fuel":540,"co2":15},{"start":"14:30","end":"15:00","fuel":950,"co2":22},{"start":"15:00","end":"15:30","fuel":640,"co2":23},{"start":"15:30","end":"16:00","fuel":370,"co2":8},{"start":"16:00","end":"16:30","fuel":450,"co2":17},{"start":"16:30","end":"17:00","fuel":690,"co2":23},{"start":"17:00","end":"17:30","fuel":510,"co2":7},{"start":"17:30","end":"18:00","fuel":500,"co2":15},{"start":"18:00","end":"18:30","fuel":740,"co2":15},{"start":"18:30","end":"19:00","fuel":940,"co2":17},{"start":"19:00","end":"19:30","fuel":620,"co2":10},{"start":"19:30","end":"20:00","fuel":780,"co2":12},{"start":"20:00","end":"20:30","fuel":590,"co2":11},{"start":"20:30","end":"21:00","fuel":710,"co2":8},{"start":"21:00","end":"21:30","fuel":650,"co2":24},{"start":"21:30","end":"22:00","fuel":880,"co2":12},{"start":"22:00","end":"22:30","fuel":530,"co2":24},{"start":"22:30","end":"23:00","fuel":970,"co2":19},{"start":"23:00","end":"23:30","fuel":530,"co2":5},{"start":"23:30","end":"23:59","fuel":780,"co2":18}]},{"day":5,"intervals":[{"start":"00:00","end":"00:30","fuel":780,"co2":22},{"start":"00:30","end":"01:00","fuel":580,"co2":6},{"start":"01:00","end":"01:30","fuel":830,"co2":14},{"start":"01:30","end":"02:00","fuel":370,"co2":9},{"start":"02:00","end":"02:30","fuel":950,"co2":23},{"start":"02:30","end":"03:00","fuel":1000,"co2":20},{"start":"03:00","end":"03:30","fuel":470,"co2":6},{"start":"03:30","end":"04:00","fuel":940,"co2":10},{"start":"04:00","end":"04:30","fuel":760,"co2":17},{"start":"04:30","end":"05:00","fuel":780,"co2":8},{"start":"05:00","end":"05:30","fuel":780,"co2":15},{"start":"05:30","end":"06:00","fuel":660,"co2":7},{"start":"06:00","end":"06:30","fuel":980,"co2":24},{"start":"06:30","end":"07:00","fuel":980,"co2":18},{"start":"07:00","end":"07:30","fuel":390,"co2":10},{"start":"07:30","end":"08:00","fuel":570,"co2":7},{"start":"08:00","end":"08:30","fuel":420,"co2":16},{"start":"08:30","end":"09:00","fuel":420,"co2":15},{"start":"09:00","end":"09:30","fuel":830,"co2":20},{"start":"09:30","end":"10:00","fuel":920,"co2":23},{"start":"10:00","end":"10:30","fuel":740,"co2":20},{"start":"10:30","end":"11:00","fuel":410,"co2":13},{"start":"11:00","end":"11:30","fuel":540,"co2":16},{"start":"11:30","end":"12:00","fuel":520,"co2":5},{"start":"12:00","end":"12:30","fuel":460,"co2":18},{"start":"12:30","end":"13:00","fuel":780,"co2":15},{"start":"13:00","end":"13:30","fuel":930,"co2":20},{"start":"13:30","end":"14:00","fuel":690,"co2":19},{"start":"14:00","end":"14:30","fuel":640,"co2":8},{"start":"14:30","end":"15:00","fuel":590,"co2":16},{"start":"15:00","end":"15:30","fuel":690,"co2":6},{"start":"15:30","end":"16:00","fuel":360,"co2":11},{"start":"16:00","end":"16:30","fuel":570,"co2":23},{"start":"16:30","end":"17:00","fuel":860,"co2":24},{"start":"17:00","end":"17:30","fuel":880,"co2":9},{"start":"17:30","end":"18:00","fuel":540,"co2":10},{"start":"18:00","end":"18:30","fuel":390,"co2":22},{"start":"18:30","end":"19:00","fuel":680,"co2":22},{"start":"19:00","end":"19:30","fuel":550,"co2":14},{"start":"19:30","end":"20:00","fuel":550,"co2":9},{"start":"20:00","end":"20:30","fuel":730,"co2":6},{"start":"20:30","end":"21:00","fuel":360,"co2":13},{"start":"21:00","end":"21:30","fuel":750,"co2":10},{"start":"21:30","end":"22:00","fuel":990,"co2":18},{"start":"22:00","end":"22:30","fuel":820,"co2":19},{"start":"22:30","end":"23:00","fuel":870,"co2":13},{"start":"23:00","end":"23:30","fuel":810,"co2":25},{"start":"23:30","end":"23:59","fuel":760,"co2":8}]},{"day":6,"intervals":[{"start":"00:00","end":"00:30","fuel":380,"co2":16},{"start":"00:30","end":"01:00","fuel":940,"co2":12},{"start":"01:00","end":"01:30","fuel":580,"co2":5},{"start":"01:30","end":"02:00","fuel":410,"co2":20},{"start":"02:00","end":"02:30","fuel":440,"co2":18},{"start":"02:30","end":"03:00","fuel":850,"co2":16},{"start":"03:00","end":"03:30","fuel":620,"co2":17},{"start":"03:30","end":"04:00","fuel":650,"co2":22},{"start":"04:00","end":"04:30","fuel":890,"co2":19},{"start":"04:30","end":"05:00","fuel":550,"co2":21},{"start":"05:00","end":"05:30","fuel":430,"co2":8},{"start":"05:30","end":"06:00","fuel":720,"co2":22},{"start":"06:00","end":"06:30","fuel":730,"co2":14},{"start":"06:30","end":"07:00","fuel":570,"co2":13},{"start":"07:00","end":"07:30","fuel":860,"co2":8},{"start":"07:30","end":"08:00","fuel":720,"co2":16},{"start":"08:00","end":"08:30","fuel":700,"co2":21},{"start":"08:30","end":"09:00","fuel":860,"co2":14},{"start":"09:00","end":"09:30","fuel":720,"co2":22},{"start":"09:30","end":"10:00","fuel":460,"co2":10},{"start":"10:00","end":"10:30","fuel":840,"co2":22},{"start":"10:30","end":"11:00","fuel":930,"co2":5},{"start":"11:00","end":"11:30","fuel":350,"co2":21},{"start":"11:30","end":"12:00","fuel":620,"co2":18},{"start":"12:00","end":"12:30","fuel":530,"co2":9},{"start":"12:30","end":"13:00","fuel":580,"co2":13},{"start":"13:00","end":"13:30","fuel":540,"co2":15},{"start":"13:30","end":"14:00","fuel":910,"co2":9},{"start":"14:00","end":"14:30","fuel":770,"co2":18},{"start":"14:30","end":"15:00","fuel":430,"co2":5},{"start":"15:00","end":"15:30","fuel":770,"co2":10},{"start":"15:30","end":"16:00","fuel":930,"co2":10},{"start":"16:00","end":"16:30","fuel":360,"co2":12},{"start":"16:30","end":"17:00","fuel":470,"co2":7},{"start":"17:00","end":"17:30","fuel":380,"co2":12},{"start":"17:30","end":"18:00","fuel":480,"co2":8},{"start":"18:00","end":"18:30","fuel":890,"co2":13},{"start":"18:30","end":"19:00","fuel":350,"co2":15},{"start":"19:00","end":"19:30","fuel":920,"co2":8},{"start":"19:30","end":"20:00","fuel":780,"co2":17},{"start":"20:00","end":"20:30","fuel":400,"co2":12},{"start":"20:30","end":"21:00","fuel":660,"co2":18},{"start":"21:00","end":"21:30","fuel":790,"co2":15},{"start":"21:30","end":"22:00","fuel":450,"co2":18},{"start":"22:00","end":"22:30","fuel":560,"co2":5},{"start":"22:30","end":"23:00","fuel":800,"co2":5},{"start":"23:00","end":"23:30","fuel":1000,"co2":22},{"start":"23:30","end":"23:59","fuel":790,"co2":23}]},{"day":7,"intervals":[{"start":"00:00","end":"00:30","fuel":580,"co2":21},{"start":"00:30","end":"01:00","fuel":800,"co2":16},{"start":"01:00","end":"01:30","fuel":640,"co2":22},{"start":"01:30","end":"02:00","fuel":790,"co2":18},{"start":"02:00","end":"02:30","fuel":970,"co2":15},{"start":"02:30","end":"03:00","fuel":410,"co2":14},{"start":"03:00","end":"03:30","fuel":400,"co2":15},{"start":"03:30","end":"04:00","fuel":780,"co2":20},{"start":"04:00","end":"04:30","fuel":350,"co2":20},{"start":"04:30","end":"05:00","fuel":370,"co2":5},{"start":"05:00","end":"05:30","fuel":1000,"co2":12},{"start":"05:30","end":"06:00","fuel":650,"co2":23},{"start":"06:00","end":"06:30","fuel":680,"co2":22},{"start":"06:30","end":"07:00","fuel":770,"co2":7},{"start":"07:00","end":"07:30","fuel":610,"co2":17},{"start":"07:30","end":"08:00","fuel":840,"co2":16},{"start":"08:00","end":"08:30","fuel":670,"co2":15},{"start":"08:30","end":"09:00","fuel":870,"co2":16},{"start":"09:00","end":"09:30","fuel":460,"co2":17},{"start":"09:30","end":"10:00","fuel":780,"co2":20},{"start":"10:00","end":"10:30","fuel":720,"co2":9},{"start":"10:30","end":"11:00","fuel":610,"co2":12},{"start":"11:00","end":"11:30","fuel":670,"co2":21},{"start":"11:30","end":"12:00","fuel":1000,"co2":10},{"start":"12:00","end":"12:30","fuel":480,"co2":11},{"start":"12:30","end":"13:00","fuel":430,"co2":12},{"start":"13:00","end":"13:30","fuel":720,"co2":13},{"start":"13:30","end":"14:00","fuel":550,"co2":11},{"start":"14:00","end":"14:30","fuel":800,"co2":15},{"start":"14:30","end":"15:00","fuel":890,"co2":17},{"start":"15:00","end":"15:30","fuel":780,"co2":9},{"start":"15:30","end":"16:00","fuel":770,"co2":23},{"start":"16:00","end":"16:30","fuel":880,"co2":25},{"start":"16:30","end":"17:00","fuel":440,"co2":9},{"start":"17:00","end":"17:30","fuel":370,"co2":16},{"start":"17:30","end":"18:00","fuel":710,"co2":24},{"start":"18:00","end":"18:30","fuel":870,"co2":19},{"start":"18:30","end":"19:00","fuel":360,"co2":21},{"start":"19:00","end":"19:30","fuel":350,"co2":16},{"start":"19:30","end":"20:00","fuel":350,"co2":11},{"start":"20:00","end":"20:30","fuel":600,"co2":17},{"start":"20:30","end":"21:00","fuel":920,"co2":25},{"start":"21:00","end":"21:30","fuel":380,"co2":11},{"start":"21:30","end":"22:00","fuel":600,"co2":5},{"start":"22:00","end":"22:30","fuel":800,"co2":17},{"start":"22:30","end":"23:00","fuel":360,"co2":22},{"start":"23:00","end":"23:30","fuel":950,"co2":13},{"start":"23:30","end":"23:59","fuel":680,"co2":11}]},{"day":8,"intervals":[{"start":"00:00","end":"00:30","fuel":810,"co2":15},{"start":"00:30","end":"01:00","fuel":790,"co2":13},{"start":"01:00","end":"01:30","fuel":490,"co2":18},{"start":"01:30","end":"02:00","fuel":520,"co2":6},{"start":"02:00","end":"02:30","fuel":760,"co2":14},{"start":"02:30","end":"03:00","fuel":750,"co2":6},{"start":"03:00","end":"03:30","fuel":970,"co2":11},{"start":"03:30","end":"04:00","fuel":440,"co2":10},{"start":"04:00","end":"04:30","fuel":670,"co2":5},{"start":"04:30","end":"05:00","fuel":390,"co2":20},{"start":"05:00","end":"05:30","fuel":380,"co2":11},{"start":"05:30","end":"06:00","fuel":650,"co2":14},{"start":"06:00","end":"06:30","fuel":660,"co2":24},{"start":"06:30","end":"07:00","fuel":790,"co2":21},{"start":"07:00","end":"07:30","fuel":710,"co2":6},{"start":"07:30","end":"08:00","fuel":570,"co2":19},{"start":"08:00","end":"08:30","fuel":870,"co2":16},{"start":"08:30","end":"09:00","fuel":610,"co2":24},{"start":"09:00","end":"09:30","fuel":400,"co2":17},{"start":"09:30","end":"10:00","fuel":430,"co2":9},{"start":"10:00","end":"10:30","fuel":710,"co2":12},{"start":"10:30","end":"11:00","fuel":770,"co2":22},{"start":"11:00","end":"11:30","fuel":390,"co2":17},{"start":"11:30","end":"12:00","fuel":790,"co2":17},{"start":"12:00","end":"12:30","fuel":540,"co2":25},{"start":"12:30","end":"13:00","fuel":730,"co2":6},{"start":"13:00","end":"13:30","fuel":970,"co2":9},{"start":"13:30","end":"14:00","fuel":960,"co2":23},{"start":"14:00","end":"14:30","fuel":780,"co2":8},{"start":"14:30","end":"15:00","fuel":500,"co2":5},{"start":"15:00","end":"15:30","fuel":930,"co2":23},{"start":"15:30","end":"16:00","fuel":690,"co2":17},{"start":"16:00","end":"16:30","fuel":910,"co2":16},{"start":"16:30","end":"17:00","fuel":720,"co2":20},{"start":"17:00","end":"17:30","fuel":610,"co2":11},{"start":"17:30","end":"18:00","fuel":460,"co2":19},{"start":"18:00","end":"18:30","fuel":440,"co2":23},{"start":"18:30","end":"19:00","fuel":810,"co2":12},{"start":"19:00","end":"19:30","fuel":380,"co2":19},{"start":"19:30","end":"20:00","fuel":470,"co2":25},{"start":"20:00","end":"20:30","fuel":990,"co2":10},{"start":"20:30","end":"21:00","fuel":570,"co2":11},{"start":"21:00","end":"21:30","fuel":560,"co2":24},{"start":"21:30","end":"22:00","fuel":720,"co2":12},{"start":"22:00","end":"22:30","fuel":690,"co2":22},{"start":"22:30","end":"23:00","fuel":670,"co2":25},{"start":"23:00","end":"23:30","fuel":630,"co2":9},{"start":"23:30","end":"23:59","fuel":770,"co2":23}]},{"day":9,"intervals":[{"start":"00:00","end":"00:30","fuel":970,"co2":16},{"start":"00:30","end":"01:00","fuel":980,"co2":19},{"start":"01:00","end":"01:30","fuel":930,"co2":7},{"start":"01:30","end":"02:00","fuel":690,"co2":11},{"start":"02:00","end":"02:30","fuel":590,"co2":12},{"start":"02:30","end":"03:00","fuel":490,"co2":13},{"start":"03:00","end":"03:30","fuel":990,"co2":9},{"start":"03:30","end":"04:00","fuel":580,"co2":17},{"start":"04:00","end":"04:30","fuel":750,"co2":16},{"start":"04:30","end":"05:00","fuel":810,"co2":14},{"start":"05:00","end":"05:30","fuel":350,"co2":9},{"start":"05:30","end":"06:00","fuel":500,"co2":21},{"start":"06:00","end":"06:30","fuel":890,"co2":8},{"start":"06:30","end":"07:00","fuel":570,"co2":22},{"start":"07:00","end":"07:30","fuel":840,"co2":20},{"start":"07:30","end":"08:00","fuel":920,"co2":22},{"start":"08:00","end":"08:30","fuel":570,"co2":18},{"start":"08:30","end":"09:00","fuel":840,"co2":11},{"start":"09:00","end":"09:30","fuel":910,"co2":20},{"start":"09:30","end":"10:00","fuel":610,"co2":12},{"start":"10:00","end":"10:30","fuel":410,"co2":8},{"start":"10:30","end":"11:00","fuel":800,"co2":17},{"start":"11:00","end":"11:30","fuel":580,"co2":20},{"start":"11:30","end":"12:00","fuel":610,"co2":15},{"start":"12:00","end":"12:30","fuel":530,"co2":23},{"start":"12:30","end":"13:00","fuel":600,"co2":6},{"start":"13:00","end":"13:30","fuel":870,"co2":9},{"start":"13:30","end":"14:00","fuel":860,"co2":11},{"start":"14:00","end":"14:30","fuel":660,"co2":19},{"start":"14:30","end":"15:00","fuel":760,"co2":19},{"start":"15:00","end":"15:30","fuel":720,"co2":5},{"start":"15:30","end":"16:00","fuel":480,"co2":23},{"start":"16:00","end":"16:30","fuel":760,"co2":11},{"start":"16:30","end":"17:00","fuel":550,"co2":20},{"start":"17:00","end":"17:30","fuel":720,"co2":22},{"start":"17:30","end":"18:00","fuel":930,"co2":7},{"start":"18:00","end":"18:30","fuel":750,"co2":5},{"start":"18:30","end":"19:00","fuel":580,"co2":20},{"start":"19:00","end":"19:30","fuel":610,"co2":9},{"start":"19:30","end":"20:00","fuel":700,"co2":17},{"start":"20:00","end":"20:30","fuel":810,"co2":25},{"start":"20:30","end":"21:00","fuel":990,"co2":14},{"start":"21:00","end":"21:30","fuel":800,"co2":19},{"start":"21:30","end":"22:00","fuel":480,"co2":12},{"start":"22:00","end":"22:30","fuel":600,"co2":6},{"start":"22:30","end":"23:00","fuel":800,"co2":5},{"start":"23:00","end":"23:30","fuel":660,"co2":18},{"start":"23:30","end":"23:59","fuel":700,"co2":15}]},{"day":10,"intervals":[{"start":"00:00","end":"00:30","fuel":550,"co2":9},{"start":"00:30","end":"01:00","fuel":770,"co2":12},{"start":"01:00","end":"01:30","fuel":770,"co2":20},{"start":"01:30","end":"02:00","fuel":440,"co2":15},{"start":"02:00","end":"02:30","fuel":370,"co2":13},{"start":"02:30","end":"03:00","fuel":350,"co2":9},{"start":"03:00","end":"03:30","fuel":800,"co2":9},{"start":"03:30","end":"04:00","fuel":650,"co2":12},{"start":"04:00","end":"04:30","fuel":750,"co2":22},{"start":"04:30","end":"05:00","fuel":970,"co2":19},{"start":"05:00","end":"05:30","fuel":510,"co2":18},{"start":"05:30","end":"06:00","fuel":550,"co2":11},{"start":"06:00","end":"06:30","fuel":770,"co2":21},{"start":"06:30","end":"07:00","fuel":670,"co2":13},{"start":"07:00","end":"07:30","fuel":720,"co2":15},{"start":"07:30","end":"08:00","fuel":480,"co2":7},{"start":"08:00","end":"08:30","fuel":580,"co2":8},{"start":"08:30","end":"09:00","fuel":820,"co2":11},{"start":"09:00","end":"09:30","fuel":770,"co2":25},{"start":"09:30","end":"10:00","fuel":550,"co2":11},{"start":"10:00","end":"10:30","fuel":960,"co2":18},{"start":"10:30","end":"11:00","fuel":840,"co2":17},{"start":"11:00","end":"11:30","fuel":480,"co2":11},{"start":"11:30","end":"12:00","fuel":540,"co2":24},{"start":"12:00","end":"12:30","fuel":930,"co2":19},{"start":"12:30","end":"13:00","fuel":710,"co2":22},{"start":"13:00","end":"13:30","fuel":950,"co2":12},{"start":"13:30","end":"14:00","fuel":460,"co2":19},{"start":"14:00","end":"14:30","fuel":650,"co2":9},{"start":"14:30","end":"15:00","fuel":480,"co2":18},{"start":"15:00","end":"15:30","fuel":510,"co2":19},{"start":"15:30","end":"16:00","fuel":960,"co2":11},{"start":"16:00","end":"16:30","fuel":680,"co2":6},{"start":"16:30","end":"17:00","fuel":980,"co2":11},{"start":"17:00","end":"17:30","fuel":450,"co2":11},{"start":"17:30","end":"18:00","fuel":650,"co2":20},{"start":"18:00","end":"18:30","fuel":430,"co2":22},{"start":"18:30","end":"19:00","fuel":740,"co2":9},{"start":"19:00","end":"19:30","fuel":360,"co2":20},{"start":"19:30","end":"20:00","fuel":870,"co2":16},{"start":"20:00","end":"20:30","fuel":820,"co2":9},{"start":"20:30","end":"21:00","fuel":420,"co2":6},{"start":"21:00","end":"21:30","fuel":670,"co2":23},{"start":"21:30","end":"22:00","fuel":720,"co2":6},{"start":"22:00","end":"22:30","fuel":980,"co2":17},{"start":"22:30","end":"23:00","fuel":710,"co2":6},{"start":"23:00","end":"23:30","fuel":920,"co2":15},{"start":"23:30","end":"23:59","fuel":850,"co2":22}]},{"day":11,"intervals":[{"start":"00:00","end":"00:30","fuel":710,"co2":6},{"start":"00:30","end":"01:00","fuel":390,"co2":13},{"start":"01:00","end":"01:30","fuel":980,"co2":7},{"start":"01:30","end":"02:00","fuel":960,"co2":16},{"start":"02:00","end":"02:30","fuel":960,"co2":6},{"start":"02:30","end":"03:00","fuel":950,"co2":16},{"start":"03:00","end":"03:30","fuel":510,"co2":25},{"start":"03:30","end":"04:00","fuel":760,"co2":19},{"start":"04:00","end":"04:30","fuel":360,"co2":5},{"start":"04:30","end":"05:00","fuel":440,"co2":14},{"start":"05:00","end":"05:30","fuel":780,"co2":13},{"start":"05:30","end":"06:00","fuel":480,"co2":25},{"start":"06:00","end":"06:30","fuel":990,"co2":18},{"start":"06:30","end":"07:00","fuel":1000,"co2":23},{"start":"07:00","end":"07:30","fuel":510,"co2":16},{"start":"07:30","end":"08:00","fuel":740,"co2":8},{"start":"08:00","end":"08:30","fuel":860,"co2":16},{"start":"08:30","end":"09:00","fuel":740,"co2":8},{"start":"09:00","end":"09:30","fuel":670,"co2":6},{"start":"09:30","end":"10:00","fuel":730,"co2":18},{"start":"10:00","end":"10:30","fuel":700,"co2":7},{"start":"10:30","end":"11:00","fuel":870,"co2":7},{"start":"11:00","end":"11:30","fuel":860,"co2":7},{"start":"11:30","end":"12:00","fuel":380,"co2":6},{"start":"12:00","end":"12:30","fuel":810,"co2":15},{"start":"12:30","end":"13:00","fuel":660,"co2":6},{"start":"13:00","end":"13:30","fuel":840,"co2":25},{"start":"13:30","end":"14:00","fuel":590,"co2":15},{"start":"14:00","end":"14:30","fuel":490,"co2":5},{"start":"14:30","end":"15:00","fuel":920,"co2":23},{"start":"15:00","end":"15:30","fuel":730,"co2":25},{"start":"15:30","end":"16:00","fuel":550,"co2":11},{"start":"16:00","end":"16:30","fuel":800,"co2":20},{"start":"16:30","end":"17:00","fuel":800,"co2":16},{"start":"17:00","end":"17:30","fuel":470,"co2":20},{"start":"17:30","end":"18:00","fuel":500,"co2":16},{"start":"18:00","end":"18:30","fuel":720,"co2":18},{"start":"18:30","end":"19:00","fuel":770,"co2":14},{"start":"19:00","end":"19:30","fuel":570,"co2":20},{"start":"19:30","end":"20:00","fuel":710,"co2":8},{"start":"20:00","end":"20:30","fuel":960,"co2":25},{"start":"20:30","end":"21:00","fuel":870,"co2":23},{"start":"21:00","end":"21:30","fuel":420,"co2":21},{"start":"21:30","end":"22:00","fuel":400,"co2":5},{"start":"22:00","end":"22:30","fuel":670,"co2":24},{"start":"22:30","end":"23:00","fuel":420,"co2":20},{"start":"23:00","end":"23:30","fuel":850,"co2":24},{"start":"23:30","end":"23:59","fuel":870,"co2":10}]},{"day":12,"intervals":[{"start":"00:00","end":"00:30","fuel":940,"co2":24},{"start":"00:30","end":"01:00","fuel":990,"co2":22},{"start":"01:00","end":"01:30","fuel":730,"co2":8},{"start":"01:30","end":"02:00","fuel":450,"co2":7},{"start":"02:00","end":"02:30","fuel":850,"co2":6},{"start":"02:30","end":"03:00","fuel":690,"co2":10},{"start":"03:00","end":"03:30","fuel":1000,"co2":6},{"start":"03:30","end":"04:00","fuel":880,"co2":11},{"start":"04:00","end":"04:30","fuel":430,"co2":13},{"start":"04:30","end":"05:00","fuel":910,"co2":6},{"start":"05:00","end":"05:30","fuel":740,"co2":13},{"start":"05:30","end":"06:00","fuel":510,"co2":24},{"start":"06:00","end":"06:30","fuel":880,"co2":18},{"start":"06:30","end":"07:00","fuel":400,"co2":16},{"start":"07:00","end":"07:30","fuel":630,"co2":13},{"start":"07:30","end":"08:00","fuel":820,"co2":21},{"start":"08:00","end":"08:30","fuel":540,"co2":14},{"start":"08:30","end":"09:00","fuel":560,"co2":13},{"start":"09:00","end":"09:30","fuel":430,"co2":10},{"start":"09:30","end":"10:00","fuel":640,"co2":18},{"start":"10:00","end":"10:30","fuel":410,"co2":6},{"start":"10:30","end":"11:00","fuel":670,"co2":24},{"start":"11:00","end":"11:30","fuel":780,"co2":18},{"start":"11:30","end":"12:00","fuel":350,"co2":19},{"start":"12:00","end":"12:30","fuel":350,"co2":10},{"start":"12:30","end":"13:00","fuel":390,"co2":7},{"start":"13:00","end":"13:30","fuel":530,"co2":15},{"start":"13:30","end":"14:00","fuel":370,"co2":14},{"start":"14:00","end":"14:30","fuel":800,"co2":24},{"start":"14:30","end":"15:00","fuel":600,"co2":13},{"start":"15:00","end":"15:30","fuel":780,"co2":20},{"start":"15:30","end":"16:00","fuel":940,"co2":11},{"start":"16:00","end":"16:30","fuel":930,"co2":9},{"start":"16:30","end":"17:00","fuel":450,"co2":8},{"start":"17:00","end":"17:30","fuel":690,"co2":9},{"start":"17:30","end":"18:00","fuel":680,"co2":7},{"start":"18:00","end":"18:30","fuel":800,"co2":5},{"start":"18:30","end":"19:00","fuel":430,"co2":25},{"start":"19:00","end":"19:30","fuel":820,"co2":17},{"start":"19:30","end":"20:00","fuel":580,"co2":20},{"start":"20:00","end":"20:30","fuel":410,"co2":10},{"start":"20:30","end":"21:00","fuel":860,"co2":14},{"start":"21:00","end":"21:30","fuel":380,"co2":15},{"start":"21:30","end":"22:00","fuel":590,"co2":17},{"start":"22:00","end":"22:30","fuel":580,"co2":16},{"start":"22:30","end":"23:00","fuel":380,"co2":11},{"start":"23:00","end":"23:30","fuel":700,"co2":22},{"start":"23:30","end":"23:59","fuel":370,"co2":23}]},{"day":13,"intervals":[{"start":"00:00","end":"00:30","fuel":870,"co2":20},{"start":"00:30","end":"01:00","fuel":960,"co2":7},{"start":"01:00","end":"01:30","fuel":410,"co2":17},{"start":"01:30","end":"02:00","fuel":970,"co2":21},{"start":"02:00","end":"02:30","fuel":360,"co2":23},{"start":"02:30","end":"03:00","fuel":780,"co2":23},{"start":"03:00","end":"03:30","fuel":900,"co2":24},{"start":"03:30","end":"04:00","fuel":480,"co2":21},{"start":"04:00","end":"04:30","fuel":570,"co2":22},{"start":"04:30","end":"05:00","fuel":710,"co2":10},{"start":"05:00","end":"05:30","fuel":710,"co2":9},{"start":"05:30","end":"06:00","fuel":370,"co2":5},{"start":"06:00","end":"06:30","fuel":890,"co2":17},{"start":"06:30","end":"07:00","fuel":490,"co2":25},{"start":"07:00","end":"07:30","fuel":600,"co2":24},{"start":"07:30","end":"08:00","fuel":570,"co2":16},{"start":"08:00","end":"08:30","fuel":690,"co2":18},{"start":"08:30","end":"09:00","fuel":870,"co2":23},{"start":"09:00","end":"09:30","fuel":970,"co2":8},{"start":"09:30","end":"10:00","fuel":700,"co2":6},{"start":"10:00","end":"10:30","fuel":690,"co2":7},{"start":"10:30","end":"11:00","fuel":840,"co2":24},{"start":"11:00","end":"11:30","fuel":740,"co2":13},{"start":"11:30","end":"12:00","fuel":530,"co2":6},{"start":"12:00","end":"12:30","fuel":850,"co2":16},{"start":"12:30","end":"13:00","fuel":420,"co2":7},{"start":"13:00","end":"13:30","fuel":690,"co2":16},{"start":"13:30","end":"14:00","fuel":550,"co2":16},{"start":"14:00","end":"14:30","fuel":840,"co2":23},{"start":"14:30","end":"15:00","fuel":450,"co2":18},{"start":"15:00","end":"15:30","fuel":470,"co2":18},{"start":"15:30","end":"16:00","fuel":560,"co2":23},{"start":"16:00","end":"16:30","fuel":530,"co2":24},{"start":"16:30","end":"17:00","fuel":880,"co2":13},{"start":"17:00","end":"17:30","fuel":970,"co2":10},{"start":"17:30","end":"18:00","fuel":790,"co2":18},{"start":"18:00","end":"18:30","fuel":800,"co2":24},{"start":"18:30","end":"19:00","fuel":430,"co2":17},{"start":"19:00","end":"19:30","fuel":440,"co2":19},{"start":"19:30","end":"20:00","fuel":390,"co2":9},{"start":"20:00","end":"20:30","fuel":550,"co2":22},{"start":"20:30","end":"21:00","fuel":480,"co2":13},{"start":"21:00","end":"21:30","fuel":420,"co2":12},{"start":"21:30","end":"22:00","fuel":570,"co2":22},{"start":"22:00","end":"22:30","fuel":660,"co2":17},{"start":"22:30","end":"23:00","fuel":960,"co2":20},{"start":"23:00","end":"23:30","fuel":610,"co2":25},{"start":"23:30","end":"23:59","fuel":510,"co2":7}]},{"day":14,"intervals":[{"start":"00:00","end":"00:30","fuel":960,"co2":12},{"start":"00:30","end":"01:00","fuel":440,"co2":23},{"start":"01:00","end":"01:30","fuel":410,"co2":25},{"start":"01:30","end":"02:00","fuel":610,"co2":13},{"start":"02:00","end":"02:30","fuel":730,"co2":18},{"start":"02:30","end":"03:00","fuel":900,"co2":16},{"start":"03:00","end":"03:30","fuel":830,"co2":9},{"start":"03:30","end":"04:00","fuel":700,"co2":9},{"start":"04:00","end":"04:30","fuel":450,"co2":17},{"start":"04:30","end":"05:00","fuel":870,"co2":22},{"start":"05:00","end":"05:30","fuel":480,"co2":23},{"start":"05:30","end":"06:00","fuel":810,"co2":10},{"start":"06:00","end":"06:30","fuel":430,"co2":20},{"start":"06:30","end":"07:00","fuel":430,"co2":16},{"start":"07:00","end":"07:30","fuel":810,"co2":14},{"start":"07:30","end":"08:00","fuel":860,"co2":22},{"start":"08:00","end":"08:30","fuel":440,"co2":5},{"start":"08:30","end":"09:00","fuel":990,"co2":10},{"start":"09:00","end":"09:30","fuel":530,"co2":15},{"start":"09:30","end":"10:00","fuel":640,"co2":7},{"start":"10:00","end":"10:30","fuel":780,"co2":18},{"start":"10:30","end":"11:00","fuel":830,"co2":17},{"start":"11:00","end":"11:30","fuel":520,"co2":22},{"start":"11:30","end":"12:00","fuel":660,"co2":18},{"start":"12:00","end":"12:30","fuel":400,"co2":25},{"start":"12:30","end":"13:00","fuel":780,"co2":11},{"start":"13:00","end":"13:30","fuel":790,"co2":19},{"start":"13:30","end":"14:00","fuel":390,"co2":11},{"start":"14:00","end":"14:30","fuel":800,"co2":12},{"start":"14:30","end":"15:00","fuel":420,"co2":11},{"start":"15:00","end":"15:30","fuel":750,"co2":10},{"start":"15:30","end":"16:00","fuel":380,"co2":25},{"start":"16:00","end":"16:30","fuel":560,"co2":5},{"start":"16:30","end":"17:00","fuel":680,"co2":11},{"start":"17:00","end":"17:30","fuel":850,"co2":22},{"start":"17:30","end":"18:00","fuel":670,"co2":21},{"start":"18:00","end":"18:30","fuel":640,"co2":15},{"start":"18:30","end":"19:00","fuel":750,"co2":17},{"start":"19:00","end":"19:30","fuel":460,"co2":23},{"start":"19:30","end":"20:00","fuel":430,"co2":18},{"start":"20:00","end":"20:30","fuel":930,"co2":16},{"start":"20:30","end":"21:00","fuel":720,"co2":11},{"start":"21:00","end":"21:30","fuel":740,"co2":19},{"start":"21:30","end":"22:00","fuel":460,"co2":23},{"start":"22:00","end":"22:30","fuel":690,"co2":22},{"start":"22:30","end":"23:00","fuel":930,"co2":11},{"start":"23:00","end":"23:30","fuel":430,"co2":15},{"start":"23:30","end":"23:59","fuel":490,"co2":24}]},{"day":15,"intervals":[{"start":"00:00","end":"00:30","fuel":820,"co2":13},{"start":"00:30","end":"01:00","fuel":390,"co2":24},{"start":"01:00","end":"01:30","fuel":770,"co2":15},{"start":"01:30","end":"02:00","fuel":910,"co2":22},{"start":"02:00","end":"02:30","fuel":990,"co2":22},{"start":"02:30","end":"03:00","fuel":840,"co2":14},{"start":"03:00","end":"03:30","fuel":630,"co2":7},{"start":"03:30","end":"04:00","fuel":940,"co2":8},{"start":"04:00","end":"04:30","fuel":800,"co2":6},{"start":"04:30","end":"05:00","fuel":580,"co2":20},{"start":"05:00","end":"05:30","fuel":350,"co2":23},{"start":"05:30","end":"06:00","fuel":530,"co2":6},{"start":"06:00","end":"06:30","fuel":490,"co2":16},{"start":"06:30","end":"07:00","fuel":650,"co2":5},{"start":"07:00","end":"07:30","fuel":540,"co2":13},{"start":"07:30","end":"08:00","fuel":980,"co2":6},{"start":"08:00","end":"08:30","fuel":980,"co2":10},{"start":"08:30","end":"09:00","fuel":730,"co2":13},{"start":"09:00","end":"09:30","fuel":490,"co2":7},{"start":"09:30","end":"10:00","fuel":640,"co2":9},{"start":"10:00","end":"10:30","fuel":930,"co2":21},{"start":"10:30","end":"11:00","fuel":980,"co2":16},{"start":"11:00","end":"11:30","fuel":710,"co2":20},{"start":"11:30","end":"12:00","fuel":1000,"co2":10},{"start":"12:00","end":"12:30","fuel":490,"co2":9},{"start":"12:30","end":"13:00","fuel":580,"co2":5},{"start":"13:00","end":"13:30","fuel":690,"co2":10},{"start":"13:30","end":"14:00","fuel":880,"co2":23},{"start":"14:00","end":"14:30","fuel":920,"co2":19},{"start":"14:30","end":"15:00","fuel":660,"co2":23},{"start":"15:00","end":"15:30","fuel":360,"co2":5},{"start":"15:30","end":"16:00","fuel":450,"co2":11},{"start":"16:00","end":"16:30","fuel":730,"co2":23},{"start":"16:30","end":"17:00","fuel":410,"co2":13},{"start":"17:00","end":"17:30","fuel":830,"co2":22},{"start":"17:30","end":"18:00","fuel":490,"co2":21},{"start":"18:00","end":"18:30","fuel":730,"co2":6},{"start":"18:30","end":"19:00","fuel":880,"co2":13},{"start":"19:00","end":"19:30","fuel":510,"co2":6},{"start":"19:30","end":"20:00","fuel":530,"co2":11},{"start":"20:00","end":"20:30","fuel":780,"co2":8},{"start":"20:30","end":"21:00","fuel":400,"co2":8},{"start":"21:00","end":"21:30","fuel":680,"co2":19},{"start":"21:30","end":"22:00","fuel":910,"co2":7},{"start":"22:00","end":"22:30","fuel":610,"co2":17},{"start":"22:30","end":"23:00","fuel":740,"co2":6},{"start":"23:00","end":"23:30","fuel":420,"co2":18},{"start":"23:30","end":"23:59","fuel":910,"co2":23}]},{"day":16,"intervals":[{"start":"00:00","end":"00:30","fuel":680,"co2":18},{"start":"00:30","end":"01:00","fuel":470,"co2":14},{"start":"01:00","end":"01:30","fuel":410,"co2":25},{"start":"01:30","end":"02:00","fuel":460,"co2":16},{"start":"02:00","end":"02:30","fuel":970,"co2":9},{"start":"02:30","end":"03:00","fuel":790,"co2":21},{"start":"03:00","end":"03:30","fuel":430,"co2":10},{"start":"03:30","end":"04:00","fuel":580,"co2":23},{"start":"04:00","end":"04:30","fuel":960,"co2":12},{"start":"04:30","end":"05:00","fuel":430,"co2":5},{"start":"05:00","end":"05:30","fuel":780,"co2":16},{"start":"05:30","end":"06:00","fuel":1000,"co2":21},{"start":"06:00","end":"06:30","fuel":550,"co2":8},{"start":"06:30","end":"07:00","fuel":920,"co2":22},{"start":"07:00","end":"07:30","fuel":550,"co2":11},{"start":"07:30","end":"08:00","fuel":1000,"co2":13},{"start":"08:00","end":"08:30","fuel":780,"co2":8},{"start":"08:30","end":"09:00","fuel":430,"co2":13},{"start":"09:00","end":"09:30","fuel":440,"co2":14},{"start":"09:30","end":"10:00","fuel":960,"co2":18},{"start":"10:00","end":"10:30","fuel":780,"co2":22},{"start":"10:30","end":"11:00","fuel":770,"co2":5},{"start":"11:00","end":"11:30","fuel":390,"co2":10},{"start":"11:30","end":"12:00","fuel":530,"co2":21},{"start":"12:00","end":"12:30","fuel":880,"co2":20},{"start":"12:30","end":"13:00","fuel":410,"co2":6},{"start":"13:00","end":"13:30","fuel":830,"co2":19},{"start":"13:30","end":"14:00","fuel":590,"co2":22},{"start":"14:00","end":"14:30","fuel":490,"co2":5},{"start":"14:30","end":"15:00","fuel":750,"co2":16},{"start":"15:00","end":"15:30","fuel":510,"co2":6},{"start":"15:30","end":"16:00","fuel":720,"co2":14},{"start":"16:00","end":"16:30","fuel":540,"co2":6},{"start":"16:30","end":"17:00","fuel":880,"co2":14},{"start":"17:00","end":"17:30","fuel":500,"co2":5},{"start":"17:30","end":"18:00","fuel":640,"co2":8},{"start":"18:00","end":"18:30","fuel":810,"co2":16},{"start":"18:30","end":"19:00","fuel":410,"co2":23},{"start":"19:00","end":"19:30","fuel":600,"co2":25},{"start":"19:30","end":"20:00","fuel":820,"co2":15},{"start":"20:00","end":"20:30","fuel":760,"co2":11},{"start":"20:30","end":"21:00","fuel":890,"co2":24},{"start":"21:00","end":"21:30","fuel":1000,"co2":20},{"start":"21:30","end":"22:00","fuel":480,"co2":9},{"start":"22:00","end":"22:30","fuel":930,"co2":15},{"start":"22:30","end":"23:00","fuel":610,"co2":10},{"start":"23:00","end":"23:30","fuel":400,"co2":6},{"start":"23:30","end":"23:59","fuel":1000,"co2":13}]},{"day":17,"intervals":[{"start":"00:00","end":"00:30","fuel":710,"co2":13},{"start":"00:30","end":"01:00","fuel":720,"co2":20},{"start":"01:00","end":"01:30","fuel":710,"co2":19},{"start":"01:30","end":"02:00","fuel":600,"co2":21},{"start":"02:00","end":"02:30","fuel":960,"co2":21},{"start":"02:30","end":"03:00","fuel":610,"co2":11},{"start":"03:00","end":"03:30","fuel":550,"co2":23},{"start":"03:30","end":"04:00","fuel":430,"co2":20},{"start":"04:00","end":"04:30","fuel":620,"co2":22},{"start":"04:30","end":"05:00","fuel":860,"co2":22},{"start":"05:00","end":"05:30","fuel":790,"co2":19},{"start":"05:30","end":"06:00","fuel":520,"co2":11},{"start":"06:00","end":"06:30","fuel":390,"co2":15},{"start":"06:30","end":"07:00","fuel":420,"co2":16},{"start":"07:00","end":"07:30","fuel":640,"co2":18},{"start":"07:30","end":"08:00","fuel":640,"co2":23},{"start":"08:00","end":"08:30","fuel":1000,"co2":17},{"start":"08:30","end":"09:00","fuel":950,"co2":24},{"start":"09:00","end":"09:30","fuel":910,"co2":16},{"start":"09:30","end":"10:00","fuel":950,"co2":25},{"start":"10:00","end":"10:30","fuel":420,"co2":10},{"start":"10:30","end":"11:00","fuel":490,"co2":23},{"start":"11:00","end":"11:30","fuel":350,"co2":22},{"start":"11:30","end":"12:00","fuel":880,"co2":12},{"start":"12:00","end":"12:30","fuel":880,"co2":23},{"start":"12:30","end":"13:00","fuel":600,"co2":18},{"start":"13:00","end":"13:30","fuel":640,"co2":18},{"start":"13:30","end":"14:00","fuel":750,"co2":16},{"start":"14:00","end":"14:30","fuel":520,"co2":7},{"start":"14:30","end":"15:00","fuel":910,"co2":6},{"start":"15:00","end":"15:30","fuel":1000,"co2":15},{"start":"15:30","end":"16:00","fuel":930,"co2":17},{"start":"16:00","end":"16:30","fuel":400,"co2":16},{"start":"16:30","end":"17:00","fuel":1000,"co2":18},{"start":"17:00","end":"17:30","fuel":1000,"co2":12},{"start":"17:30","end":"18:00","fuel":790,"co2":21},{"start":"18:00","end":"18:30","fuel":380,"co2":23},{"start":"18:30","end":"19:00","fuel":960,"co2":12},{"start":"19:00","end":"19:30","fuel":830,"co2":15},{"start":"19:30","end":"20:00","fuel":540,"co2":7},{"start":"20:00","end":"20:30","fuel":600,"co2":5},{"start":"20:30","end":"21:00","fuel":660,"co2":22},{"start":"21:00","end":"21:30","fuel":900,"co2":11},{"start":"21:30","end":"22:00","fuel":730,"co2":20},{"start":"22:00","end":"22:30","fuel":870,"co2":19},{"start":"22:30","end":"23:00","fuel":430,"co2":8},{"start":"23:00","end":"23:30","fuel":490,"co2":19},{"start":"23:30","end":"23:59","fuel":590,"co2":6}]},{"day":18,"intervals":[{"start":"00:00","end":"00:30","fuel":620,"co2":21},{"start":"00:30","end":"01:00","fuel":870,"co2":13},{"start":"01:00","end":"01:30","fuel":730,"co2":10},{"start":"01:30","end":"02:00","fuel":650,"co2":13},{"start":"02:00","end":"02:30","fuel":790,"co2":24},{"start":"02:30","end":"03:00","fuel":610,"co2":12},{"start":"03:00","end":"03:30","fuel":790,"co2":10},{"start":"03:30","end":"04:00","fuel":970,"co2":20},{"start":"04:00","end":"04:30","fuel":810,"co2":25},{"start":"04:30","end":"05:00","fuel":360,"co2":23},{"start":"05:00","end":"05:30","fuel":710,"co2":9},{"start":"05:30","end":"06:00","fuel":370,"co2":21},{"start":"06:00","end":"06:30","fuel":740,"co2":5},{"start":"06:30","end":"07:00","fuel":810,"co2":15},{"start":"07:00","end":"07:30","fuel":480,"co2":8},{"start":"07:30","end":"08:00","fuel":570,"co2":5},{"start":"08:00","end":"08:30","fuel":910,"co2":24},{"start":"08:30","end":"09:00","fuel":990,"co2":19},{"start":"09:00","end":"09:30","fuel":740,"co2":20},{"start":"09:30","end":"10:00","fuel":420,"co2":24},{"start":"10:00","end":"10:30","fuel":740,"co2":22},{"start":"10:30","end":"11:00","fuel":700,"co2":17},{"start":"11:00","end":"11:30","fuel":900,"co2":11},{"start":"11:30","end":"12:00","fuel":580,"co2":6},{"start":"12:00","end":"12:30","fuel":450,"co2":21},{"start":"12:30","end":"13:00","fuel":760,"co2":20},{"start":"13:00","end":"13:30","fuel":770,"co2":17},{"start":"13:30","end":"14:00","fuel":470,"co2":21},{"start":"14:00","end":"14:30","fuel":590,"co2":15},{"start":"14:30","end":"15:00","fuel":820,"co2":16},{"start":"15:00","end":"15:30","fuel":860,"co2":15},{"start":"15:30","end":"16:00","fuel":520,"co2":17},{"start":"16:00","end":"16:30","fuel":770,"co2":17},{"start":"16:30","end":"17:00","fuel":820,"co2":15},{"start":"17:00","end":"17:30","fuel":360,"co2":24},{"start":"17:30","end":"18:00","fuel":420,"co2":19},{"start":"18:00","end":"18:30","fuel":480,"co2":8},{"start":"18:30","end":"19:00","fuel":690,"co2":9},{"start":"19:00","end":"19:30","fuel":490,"co2":9},{"start":"19:30","end":"20:00","fuel":380,"co2":12},{"start":"20:00","end":"20:30","fuel":790,"co2":25},{"start":"20:30","end":"21:00","fuel":430,"co2":8},{"start":"21:00","end":"21:30","fuel":470,"co2":18},{"start":"21:30","end":"22:00","fuel":830,"co2":21},{"start":"22:00","end":"22:30","fuel":350,"co2":12},{"start":"22:30","end":"23:00","fuel":840,"co2":8},{"start":"23:00","end":"23:30","fuel":980,"co2":10},{"start":"23:30","end":"23:59","fuel":630,"co2":7}]},{"day":19,"intervals":[{"start":"00:00","end":"00:30","fuel":690,"co2":20},{"start":"00:30","end":"01:00","fuel":640,"co2":21},{"start":"01:00","end":"01:30","fuel":570,"co2":17},{"start":"01:30","end":"02:00","fuel":470,"co2":17},{"start":"02:00","end":"02:30","fuel":380,"co2":25},{"start":"02:30","end":"03:00","fuel":410,"co2":22},{"start":"03:00","end":"03:30","fuel":870,"co2":15},{"start":"03:30","end":"04:00","fuel":710,"co2":13},{"start":"04:00","end":"04:30","fuel":830,"co2":23},{"start":"04:30","end":"05:00","fuel":430,"co2":25},{"start":"05:00","end":"05:30","fuel":440,"co2":11},{"start":"05:30","end":"06:00","fuel":690,"co2":17},{"start":"06:00","end":"06:30","fuel":640,"co2":6},{"start":"06:30","end":"07:00","fuel":500,"co2":5},{"start":"07:00","end":"07:30","fuel":430,"co2":10},{"start":"07:30","end":"08:00","fuel":520,"co2":11},{"start":"08:00","end":"08:30","fuel":630,"co2":12},{"start":"08:30","end":"09:00","fuel":570,"co2":5},{"start":"09:00","end":"09:30","fuel":450,"co2":9},{"start":"09:30","end":"10:00","fuel":930,"co2":18},{"start":"10:00","end":"10:30","fuel":960,"co2":13},{"start":"10:30","end":"11:00","fuel":820,"co2":5},{"start":"11:00","end":"11:30","fuel":850,"co2":12},{"start":"11:30","end":"12:00","fuel":350,"co2":23},{"start":"12:00","end":"12:30","fuel":650,"co2":8},{"start":"12:30","end":"13:00","fuel":840,"co2":13},{"start":"13:00","end":"13:30","fuel":660,"co2":19},{"start":"13:30","end":"14:00","fuel":590,"co2":6},{"start":"14:00","end":"14:30","fuel":860,"co2":25},{"start":"14:30","end":"15:00","fuel":410,"co2":13},{"start":"15:00","end":"15:30","fuel":620,"co2":5},{"start":"15:30","end":"16:00","fuel":370,"co2":21},{"start":"16:00","end":"16:30","fuel":690,"co2":11},{"start":"16:30","end":"17:00","fuel":430,"co2":24},{"start":"17:00","end":"17:30","fuel":950,"co2":22},{"start":"17:30","end":"18:00","fuel":970,"co2":13},{"start":"18:00","end":"18:30","fuel":670,"co2":22},{"start":"18:30","end":"19:00","fuel":810,"co2":15},{"start":"19:00","end":"19:30","fuel":760,"co2":16},{"start":"19:30","end":"20:00","fuel":550,"co2":14},{"start":"20:00","end":"20:30","fuel":450,"co2":19},{"start":"20:30","end":"21:00","fuel":830,"co2":8},{"start":"21:00","end":"21:30","fuel":550,"co2":10},{"start":"21:30","end":"22:00","fuel":420,"co2":24},{"start":"22:00","end":"22:30","fuel":410,"co2":7},{"start":"22:30","end":"23:00","fuel":910,"co2":24},{"start":"23:00","end":"23:30","fuel":650,"co2":10},{"start":"23:30","end":"23:59","fuel":1000,"co2":18}]},{"day":20,"intervals":[{"start":"00:00","end":"00:30","fuel":950,"co2":5},{"start":"00:30","end":"01:00","fuel":800,"co2":9},{"start":"01:00","end":"01:30","fuel":350,"co2":22},{"start":"01:30","end":"02:00","fuel":570,"co2":7},{"start":"02:00","end":"02:30","fuel":870,"co2":10},{"start":"02:30","end":"03:00","fuel":350,"co2":11},{"start":"03:00","end":"03:30","fuel":1000,"co2":22},{"start":"03:30","end":"04:00","fuel":920,"co2":9},{"start":"04:00","end":"04:30","fuel":410,"co2":5},{"start":"04:30","end":"05:00","fuel":940,"co2":19},{"start":"05:00","end":"05:30","fuel":840,"co2":19},{"start":"05:30","end":"06:00","fuel":890,"co2":21},{"start":"06:00","end":"06:30","fuel":360,"co2":14},{"start":"06:30","end":"07:00","fuel":510,"co2":11},{"start":"07:00","end":"07:30","fuel":640,"co2":6},{"start":"07:30","end":"08:00","fuel":790,"co2":15},{"start":"08:00","end":"08:30","fuel":1000,"co2":7},{"start":"08:30","end":"09:00","fuel":950,"co2":5},{"start":"09:00","end":"09:30","fuel":880,"co2":13},{"start":"09:30","end":"10:00","fuel":610,"co2":20},{"start":"10:00","end":"10:30","fuel":680,"co2":20},{"start":"10:30","end":"11:00","fuel":920,"co2":19},{"start":"11:00","end":"11:30","fuel":800,"co2":14},{"start":"11:30","end":"12:00","fuel":510,"co2":16},{"start":"12:00","end":"12:30","fuel":630,"co2":18},{"start":"12:30","end":"13:00","fuel":440,"co2":13},{"start":"13:00","end":"13:30","fuel":490,"co2":17},{"start":"13:30","end":"14:00","fuel":420,"co2":18},{"start":"14:00","end":"14:30","fuel":540,"co2":5},{"start":"14:30","end":"15:00","fuel":930,"co2":17},{"start":"15:00","end":"15:30","fuel":590,"co2":24},{"start":"15:30","end":"16:00","fuel":540,"co2":23},{"start":"16:00","end":"16:30","fuel":440,"co2":14},{"start":"16:30","end":"17:00","fuel":430,"co2":6},{"start":"17:00","end":"17:30","fuel":840,"co2":9},{"start":"17:30","end":"18:00","fuel":790,"co2":10},{"start":"18:00","end":"18:30","fuel":370,"co2":17},{"start":"18:30","end":"19:00","fuel":630,"co2":25},{"start":"19:00","end":"19:30","fuel":630,"co2":12},{"start":"19:30","end":"20:00","fuel":940,"co2":19},{"start":"20:00","end":"20:30","fuel":550,"co2":5},{"start":"20:30","end":"21:00","fuel":370,"co2":13},{"start":"21:00","end":"21:30","fuel":770,"co2":24},{"start":"21:30","end":"22:00","fuel":390,"co2":16},{"start":"22:00","end":"22:30","fuel":730,"co2":19},{"start":"22:30","end":"23:00","fuel":610,"co2":22},{"start":"23:00","end":"23:30","fuel":400,"co2":15},{"start":"23:30","end":"23:59","fuel":740,"co2":7}]},{"day":21,"intervals":[{"start":"00:00","end":"00:30","fuel":970,"co2":21},{"start":"00:30","end":"01:00","fuel":840,"co2":23},{"start":"01:00","end":"01:30","fuel":460,"co2":23},{"start":"01:30","end":"02:00","fuel":450,"co2":10},{"start":"02:00","end":"02:30","fuel":900,"co2":11},{"start":"02:30","end":"03:00","fuel":530,"co2":5},{"start":"03:00","end":"03:30","fuel":370,"co2":13},{"start":"03:30","end":"04:00","fuel":560,"co2":7},{"start":"04:00","end":"04:30","fuel":600,"co2":14},{"start":"04:30","end":"05:00","fuel":470,"co2":16},{"start":"05:00","end":"05:30","fuel":830,"co2":20},{"start":"05:30","end":"06:00","fuel":730,"co2":5},{"start":"06:00","end":"06:30","fuel":390,"co2":15},{"start":"06:30","end":"07:00","fuel":880,"co2":23},{"start":"07:00","end":"07:30","fuel":990,"co2":18},{"start":"07:30","end":"08:00","fuel":740,"co2":14},{"start":"08:00","end":"08:30","fuel":370,"co2":5},{"start":"08:30","end":"09:00","fuel":560,"co2":14},{"start":"09:00","end":"09:30","fuel":800,"co2":23},{"start":"09:30","end":"10:00","fuel":920,"co2":13},{"start":"10:00","end":"10:30","fuel":380,"co2":6},{"start":"10:30","end":"11:00","fuel":350,"co2":13},{"start":"11:00","end":"11:30","fuel":590,"co2":18},{"start":"11:30","end":"12:00","fuel":980,"co2":5},{"start":"12:00","end":"12:30","fuel":800,"co2":23},{"start":"12:30","end":"13:00","fuel":740,"co2":23},{"start":"13:00","end":"13:30","fuel":480,"co2":18},{"start":"13:30","end":"14:00","fuel":780,"co2":16},{"start":"14:00","end":"14:30","fuel":720,"co2":13},{"start":"14:30","end":"15:00","fuel":500,"co2":22},{"start":"15:00","end":"15:30","fuel":370,"co2":21},{"start":"15:30","end":"16:00","fuel":610,"co2":5},{"start":"16:00","end":"16:30","fuel":760,"co2":15},{"start":"16:30","end":"17:00","fuel":690,"co2":11},{"start":"17:00","end":"17:30","fuel":730,"co2":12},{"start":"17:30","end":"18:00","fuel":480,"co2":18},{"start":"18:00","end":"18:30","fuel":620,"co2":21},{"start":"18:30","end":"19:00","fuel":390,"co2":9},{"start":"19:00","end":"19:30","fuel":380,"co2":12},{"start":"19:30","end":"20:00","fuel":720,"co2":24},{"start":"20:00","end":"20:30","fuel":820,"co2":18},{"start":"20:30","end":"21:00","fuel":600,"co2":16},{"start":"21:00","end":"21:30","fuel":670,"co2":9},{"start":"21:30","end":"22:00","fuel":690,"co2":24},{"start":"22:00","end":"22:30","fuel":990,"co2":20},{"start":"22:30","end":"23:00","fuel":900,"co2":16},{"start":"23:00","end":"23:30","fuel":650,"co2":19},{"start":"23:30","end":"23:59","fuel":970,"co2":12}]},{"day":22,"intervals":[{"start":"00:00","end":"00:30","fuel":500,"co2":12},{"start":"00:30","end":"01:00","fuel":740,"co2":20},{"start":"01:00","end":"01:30","fuel":840,"co2":7},{"start":"01:30","end":"02:00","fuel":620,"co2":24},{"start":"02:00","end":"02:30","fuel":350,"co2":25},{"start":"02:30","end":"03:00","fuel":840,"co2":11},{"start":"03:00","end":"03:30","fuel":890,"co2":20},{"start":"03:30","end":"04:00","fuel":490,"co2":16},{"start":"04:00","end":"04:30","fuel":920,"co2":19},{"start":"04:30","end":"05:00","fuel":850,"co2":11},{"start":"05:00","end":"05:30","fuel":710,"co2":5},{"start":"05:30","end":"06:00","fuel":990,"co2":9},{"start":"06:00","end":"06:30","fuel":680,"co2":13},{"start":"06:30","end":"07:00","fuel":830,"co2":5},{"start":"07:00","end":"07:30","fuel":370,"co2":16},{"start":"07:30","end":"08:00","fuel":350,"co2":5},{"start":"08:00","end":"08:30","fuel":1000,"co2":20},{"start":"08:30","end":"09:00","fuel":740,"co2":11},{"start":"09:00","end":"09:30","fuel":770,"co2":22},{"start":"09:30","end":"10:00","fuel":380,"co2":21},{"start":"10:00","end":"10:30","fuel":490,"co2":6},{"start":"10:30","end":"11:00","fuel":740,"co2":23},{"start":"11:00","end":"11:30","fuel":770,"co2":7},{"start":"11:30","end":"12:00","fuel":550,"co2":9},{"start":"12:00","end":"12:30","fuel":450,"co2":10},{"start":"12:30","end":"13:00","fuel":640,"co2":20},{"start":"13:00","end":"13:30","fuel":490,"co2":23},{"start":"13:30","end":"14:00","fuel":690,"co2":13},{"start":"14:00","end":"14:30","fuel":560,"co2":20},{"start":"14:30","end":"15:00","fuel":690,"co2":12},{"start":"15:00","end":"15:30","fuel":370,"co2":8},{"start":"15:30","end":"16:00","fuel":910,"co2":10},{"start":"16:00","end":"16:30","fuel":910,"co2":15},{"start":"16:30","end":"17:00","fuel":1000,"co2":10},{"start":"17:00","end":"17:30","fuel":610,"co2":25},{"start":"17:30","end":"18:00","fuel":800,"co2":15},{"start":"18:00","end":"18:30","fuel":500,"co2":24},{"start":"18:30","end":"19:00","fuel":450,"co2":17},{"start":"19:00","end":"19:30","fuel":590,"co2":8},{"start":"19:30","end":"20:00","fuel":870,"co2":17},{"start":"20:00","end":"20:30","fuel":850,"co2":12},{"start":"20:30","end":"21:00","fuel":550,"co2":13},{"start":"21:00","end":"21:30","fuel":510,"co2":8},{"start":"21:30","end":"22:00","fuel":930,"co2":7},{"start":"22:00","end":"22:30","fuel":650,"co2":11},{"start":"22:30","end":"23:00","fuel":850,"co2":13},{"start":"23:00","end":"23:30","fuel":960,"co2":7},{"start":"23:30","end":"23:59","fuel":410,"co2":6}]},{"day":23,"intervals":[{"start":"00:00","end":"00:30","fuel":520,"co2":25},{"start":"00:30","end":"01:00","fuel":450,"co2":17},{"start":"01:00","end":"01:30","fuel":530,"co2":19},{"start":"01:30","end":"02:00","fuel":370,"co2":22},{"start":"02:00","end":"02:30","fuel":460,"co2":24},{"start":"02:30","end":"03:00","fuel":700,"co2":8},{"start":"03:00","end":"03:30","fuel":420,"co2":21},{"start":"03:30","end":"04:00","fuel":760,"co2":7},{"start":"04:00","end":"04:30","fuel":820,"co2":6},{"start":"04:30","end":"05:00","fuel":690,"co2":11},{"start":"05:00","end":"05:30","fuel":700,"co2":20},{"start":"05:30","end":"06:00","fuel":950,"co2":14},{"start":"06:00","end":"06:30","fuel":760,"co2":22},{"start":"06:30","end":"07:00","fuel":370,"co2":6},{"start":"07:00","end":"07:30","fuel":860,"co2":19},{"start":"07:30","end":"08:00","fuel":980,"co2":25},{"start":"08:00","end":"08:30","fuel":470,"co2":16},{"start":"08:30","end":"09:00","fuel":420,"co2":5},{"start":"09:00","end":"09:30","fuel":990,"co2":12},{"start":"09:30","end":"10:00","fuel":960,"co2":24},{"start":"10:00","end":"10:30","fuel":370,"co2":15},{"start":"10:30","end":"11:00","fuel":600,"co2":15},{"start":"11:00","end":"11:30","fuel":950,"co2":10},{"start":"11:30","end":"12:00","fuel":720,"co2":6},{"start":"12:00","end":"12:30","fuel":970,"co2":8},{"start":"12:30","end":"13:00","fuel":650,"co2":17},{"start":"13:00","end":"13:30","fuel":950,"co2":19},{"start":"13:30","end":"14:00","fuel":920,"co2":12},{"start":"14:00","end":"14:30","fuel":770,"co2":23},{"start":"14:30","end":"15:00","fuel":460,"co2":11},{"start":"15:00","end":"15:30","fuel":530,"co2":10},{"start":"15:30","end":"16:00","fuel":730,"co2":8},{"start":"16:00","end":"16:30","fuel":820,"co2":9},{"start":"16:30","end":"17:00","fuel":490,"co2":15},{"start":"17:00","end":"17:30","fuel":670,"co2":9},{"start":"17:30","end":"18:00","fuel":900,"co2":16},{"start":"18:00","end":"18:30","fuel":970,"co2":22},{"start":"18:30","end":"19:00","fuel":610,"co2":12},{"start":"19:00","end":"19:30","fuel":960,"co2":11},{"start":"19:30","end":"20:00","fuel":700,"co2":19},{"start":"20:00","end":"20:30","fuel":820,"co2":15},{"start":"20:30","end":"21:00","fuel":970,"co2":21},{"start":"21:00","end":"21:30","fuel":920,"co2":9},{"start":"21:30","end":"22:00","fuel":560,"co2":8},{"start":"22:00","end":"22:30","fuel":780,"co2":7},{"start":"22:30","end":"23:00","fuel":720,"co2":18},{"start":"23:00","end":"23:30","fuel":410,"co2":12},{"start":"23:30","end":"23:59","fuel":710,"co2":12}]},{"day":24,"intervals":[{"start":"00:00","end":"00:30","fuel":510,"co2":19},{"start":"00:30","end":"01:00","fuel":740,"co2":7},{"start":"01:00","end":"01:30","fuel":770,"co2":23},{"start":"01:30","end":"02:00","fuel":850,"co2":10},{"start":"02:00","end":"02:30","fuel":450,"co2":5},{"start":"02:30","end":"03:00","fuel":590,"co2":14},{"start":"03:00","end":"03:30","fuel":1000,"co2":18},{"start":"03:30","end":"04:00","fuel":680,"co2":22},{"start":"04:00","end":"04:30","fuel":520,"co2":18},{"start":"04:30","end":"05:00","fuel":480,"co2":14},{"start":"05:00","end":"05:30","fuel":390,"co2":11},{"start":"05:30","end":"06:00","fuel":700,"co2":12},{"start":"06:00","end":"06:30","fuel":760,"co2":23},{"start":"06:30","end":"07:00","fuel":920,"co2":13},{"start":"07:00","end":"07:30","fuel":620,"co2":17},{"start":"07:30","end":"08:00","fuel":410,"co2":19},{"start":"08:00","end":"08:30","fuel":440,"co2":19},{"start":"08:30","end":"09:00","fuel":530,"co2":11},{"start":"09:00","end":"09:30","fuel":840,"co2":16},{"start":"09:30","end":"10:00","fuel":470,"co2":21},{"start":"10:00","end":"10:30","fuel":350,"co2":10},{"start":"10:30","end":"11:00","fuel":690,"co2":14},{"start":"11:00","end":"11:30","fuel":950,"co2":9},{"start":"11:30","end":"12:00","fuel":570,"co2":11},{"start":"12:00","end":"12:30","fuel":900,"co2":11},{"start":"12:30","end":"13:00","fuel":1000,"co2":6},{"start":"13:00","end":"13:30","fuel":640,"co2":21},{"start":"13:30","end":"14:00","fuel":580,"co2":5},{"start":"14:00","end":"14:30","fuel":810,"co2":22},{"start":"14:30","end":"15:00","fuel":890,"co2":19},{"start":"15:00","end":"15:30","fuel":430,"co2":21},{"start":"15:30","end":"16:00","fuel":890,"co2":9},{"start":"16:00","end":"16:30","fuel":650,"co2":9},{"start":"16:30","end":"17:00","fuel":890,"co2":17},{"start":"17:00","end":"17:30","fuel":520,"co2":22},{"start":"17:30","end":"18:00","fuel":810,"co2":25},{"start":"18:00","end":"18:30","fuel":600,"co2":10},{"start":"18:30","end":"19:00","fuel":740,"co2":5},{"start":"19:00","end":"19:30","fuel":700,"co2":20},{"start":"19:30","end":"20:00","fuel":690,"co2":16},{"start":"20:00","end":"20:30","fuel":800,"co2":19},{"start":"20:30","end":"21:00","fuel":840,"co2":12},{"start":"21:00","end":"21:30","fuel":600,"co2":14},{"start":"21:30","end":"22:00","fuel":380,"co2":14},{"start":"22:00","end":"22:30","fuel":810,"co2":20},{"start":"22:30","end":"23:00","fuel":640,"co2":15},{"start":"23:00","end":"23:30","fuel":700,"co2":12},{"start":"23:30","end":"23:59","fuel":540,"co2":7}]},{"day":25,"intervals":[{"start":"00:00","end":"00:30","fuel":930,"co2":23},{"start":"00:30","end":"01:00","fuel":740,"co2":12},{"start":"01:00","end":"01:30","fuel":750,"co2":13},{"start":"01:30","end":"02:00","fuel":580,"co2":12},{"start":"02:00","end":"02:30","fuel":900,"co2":25},{"start":"02:30","end":"03:00","fuel":390,"co2":5},{"start":"03:00","end":"03:30","fuel":780,"co2":11},{"start":"03:30","end":"04:00","fuel":870,"co2":25},{"start":"04:00","end":"04:30","fuel":510,"co2":13},{"start":"04:30","end":"05:00","fuel":500,"co2":25},{"start":"05:00","end":"05:30","fuel":620,"co2":15},{"start":"05:30","end":"06:00","fuel":480,"co2":10},{"start":"06:00","end":"06:30","fuel":430,"co2":14},{"start":"06:30","end":"07:00","fuel":480,"co2":12},{"start":"07:00","end":"07:30","fuel":350,"co2":11},{"start":"07:30","end":"08:00","fuel":620,"co2":14},{"start":"08:00","end":"08:30","fuel":450,"co2":18},{"start":"08:30","end":"09:00","fuel":590,"co2":17},{"start":"09:00","end":"09:30","fuel":500,"co2":5},{"start":"09:30","end":"10:00","fuel":450,"co2":19},{"start":"10:00","end":"10:30","fuel":910,"co2":20},{"start":"10:30","end":"11:00","fuel":800,"co2":5},{"start":"11:00","end":"11:30","fuel":520,"co2":13},{"start":"11:30","end":"12:00","fuel":660,"co2":23},{"start":"12:00","end":"12:30","fuel":690,"co2":15},{"start":"12:30","end":"13:00","fuel":540,"co2":11},{"start":"13:00","end":"13:30","fuel":500,"co2":20},{"start":"13:30","end":"14:00","fuel":800,"co2":25},{"start":"14:00","end":"14:30","fuel":700,"co2":5},{"start":"14:30","end":"15:00","fuel":420,"co2":7},{"start":"15:00","end":"15:30","fuel":850,"co2":24},{"start":"15:30","end":"16:00","fuel":920,"co2":15},{"start":"16:00","end":"16:30","fuel":410,"co2":13},{"start":"16:30","end":"17:00","fuel":890,"co2":23},{"start":"17:00","end":"17:30","fuel":410,"co2":25},{"start":"17:30","end":"18:00","fuel":810,"co2":25},{"start":"18:00","end":"18:30","fuel":890,"co2":18},{"start":"18:30","end":"19:00","fuel":490,"co2":15},{"start":"19:00","end":"19:30","fuel":580,"co2":15},{"start":"19:30","end":"20:00","fuel":630,"co2":14},{"start":"20:00","end":"20:30","fuel":690,"co2":15},{"start":"20:30","end":"21:00","fuel":510,"co2":21},{"start":"21:00","end":"21:30","fuel":400,"co2":13},{"start":"21:30","end":"22:00","fuel":650,"co2":23},{"start":"22:00","end":"22:30","fuel":740,"co2":10},{"start":"22:30","end":"23:00","fuel":610,"co2":18},{"start":"23:00","end":"23:30","fuel":900,"co2":10},{"start":"23:30","end":"23:59","fuel":350,"co2":16}]},{"day":26,"intervals":[{"start":"00:00","end":"00:30","fuel":910,"co2":21},{"start":"00:30","end":"01:00","fuel":690,"co2":12},{"start":"01:00","end":"01:30","fuel":620,"co2":22},{"start":"01:30","end":"02:00","fuel":660,"co2":17},{"start":"02:00","end":"02:30","fuel":970,"co2":23},{"start":"02:30","end":"03:00","fuel":970,"co2":8},{"start":"03:00","end":"03:30","fuel":400,"co2":15},{"start":"03:30","end":"04:00","fuel":640,"co2":6},{"start":"04:00","end":"04:30","fuel":780,"co2":10},{"start":"04:30","end":"05:00","fuel":390,"co2":15},{"start":"05:00","end":"05:30","fuel":410,"co2":14},{"start":"05:30","end":"06:00","fuel":790,"co2":9},{"start":"06:00","end":"06:30","fuel":900,"co2":11},{"start":"06:30","end":"07:00","fuel":550,"co2":5},{"start":"07:00","end":"07:30","fuel":700,"co2":22},{"start":"07:30","end":"08:00","fuel":360,"co2":21},{"start":"08:00","end":"08:30","fuel":550,"co2":11},{"start":"08:30","end":"09:00","fuel":640,"co2":10},{"start":"09:00","end":"09:30","fuel":650,"co2":7},{"start":"09:30","end":"10:00","fuel":450,"co2":19},{"start":"10:00","end":"10:30","fuel":600,"co2":23},{"start":"10:30","end":"11:00","fuel":570,"co2":21},{"start":"11:00","end":"11:30","fuel":750,"co2":18},{"start":"11:30","end":"12:00","fuel":730,"co2":19},{"start":"12:00","end":"12:30","fuel":890,"co2":16},{"start":"12:30","end":"13:00","fuel":510,"co2":7},{"start":"13:00","end":"13:30","fuel":900,"co2":22},{"start":"13:30","end":"14:00","fuel":680,"co2":5},{"start":"14:00","end":"14:30","fuel":540,"co2":15},{"start":"14:30","end":"15:00","fuel":830,"co2":13},{"start":"15:00","end":"15:30","fuel":400,"co2":22},{"start":"15:30","end":"16:00","fuel":360,"co2":10},{"start":"16:00","end":"16:30","fuel":620,"co2":16},{"start":"16:30","end":"17:00","fuel":800,"co2":17},{"start":"17:00","end":"17:30","fuel":390,"co2":15},{"start":"17:30","end":"18:00","fuel":440,"co2":23},{"start":"18:00","end":"18:30","fuel":890,"co2":21},{"start":"18:30","end":"19:00","fuel":800,"co2":23},{"start":"19:00","end":"19:30","fuel":970,"co2":16},{"start":"19:30","end":"20:00","fuel":960,"co2":19},{"start":"20:00","end":"20:30","fuel":370,"co2":15},{"start":"20:30","end":"21:00","fuel":520,"co2":21},{"start":"21:00","end":"21:30","fuel":650,"co2":8},{"start":"21:30","end":"22:00","fuel":550,"co2":15},{"start":"22:00","end":"22:30","fuel":400,"co2":9},{"start":"22:30","end":"23:00","fuel":480,"co2":13},{"start":"23:00","end":"23:30","fuel":680,"co2":24},{"start":"23:30","end":"23:59","fuel":450,"co2":19}]},{"day":27,"intervals":[{"start":"00:00","end":"00:30","fuel":500,"co2":10},{"start":"00:30","end":"01:00","fuel":950,"co2":24},{"start":"01:00","end":"01:30","fuel":910,"co2":11},{"start":"01:30","end":"02:00","fuel":710,"co2":17},{"start":"02:00","end":"02:30","fuel":900,"co2":25},{"start":"02:30","end":"03:00","fuel":600,"co2":9},{"start":"03:00","end":"03:30","fuel":890,"co2":19},{"start":"03:30","end":"04:00","fuel":370,"co2":19},{"start":"04:00","end":"04:30","fuel":480,"co2":15},{"start":"04:30","end":"05:00","fuel":920,"co2":6},{"start":"05:00","end":"05:30","fuel":790,"co2":22},{"start":"05:30","end":"06:00","fuel":360,"co2":12},{"start":"06:00","end":"06:30","fuel":830,"co2":22},{"start":"06:30","end":"07:00","fuel":970,"co2":13},{"start":"07:00","end":"07:30","fuel":600,"co2":8},{"start":"07:30","end":"08:00","fuel":830,"co2":9},{"start":"08:00","end":"08:30","fuel":1000,"co2":20},{"start":"08:30","end":"09:00","fuel":770,"co2":9},{"start":"09:00","end":"09:30","fuel":750,"co2":10},{"start":"09:30","end":"10:00","fuel":430,"co2":5},{"start":"10:00","end":"10:30","fuel":940,"co2":21},{"start":"10:30","end":"11:00","fuel":640,"co2":5},{"start":"11:00","end":"11:30","fuel":910,"co2":17},{"start":"11:30","end":"12:00","fuel":590,"co2":20},{"start":"12:00","end":"12:30","fuel":400,"co2":21},{"start":"12:30","end":"13:00","fuel":600,"co2":17},{"start":"13:00","end":"13:30","fuel":620,"co2":12},{"start":"13:30","end":"14:00","fuel":870,"co2":25},{"start":"14:00","end":"14:30","fuel":690,"co2":18},{"start":"14:30","end":"15:00","fuel":520,"co2":7},{"start":"15:00","end":"15:30","fuel":750,"co2":14},{"start":"15:30","end":"16:00","fuel":760,"co2":17},{"start":"16:00","end":"16:30","fuel":380,"co2":19},{"start":"16:30","end":"17:00","fuel":610,"co2":9},{"start":"17:00","end":"17:30","fuel":560,"co2":8},{"start":"17:30","end":"18:00","fuel":510,"co2":24},{"start":"18:00","end":"18:30","fuel":490,"co2":8},{"start":"18:30","end":"19:00","fuel":470,"co2":22},{"start":"19:00","end":"19:30","fuel":670,"co2":10},{"start":"19:30","end":"20:00","fuel":690,"co2":20},{"start":"20:00","end":"20:30","fuel":550,"co2":11},{"start":"20:30","end":"21:00","fuel":370,"co2":24},{"start":"21:00","end":"21:30","fuel":420,"co2":18},{"start":"21:30","end":"22:00","fuel":430,"co2":10},{"start":"22:00","end":"22:30","fuel":420,"co2":8},{"start":"22:30","end":"23:00","fuel":600,"co2":19},{"start":"23:00","end":"23:30","fuel":490,"co2":9},{"start":"23:30","end":"23:59","fuel":460,"co2":18}]},{"day":28,"intervals":[{"start":"00:00","end":"00:30","fuel":400,"co2":9},{"start":"00:30","end":"01:00","fuel":950,"co2":5},{"start":"01:00","end":"01:30","fuel":390,"co2":5},{"start":"01:30","end":"02:00","fuel":390,"co2":9},{"start":"02:00","end":"02:30","fuel":770,"co2":8},{"start":"02:30","end":"03:00","fuel":840,"co2":19},{"start":"03:00","end":"03:30","fuel":900,"co2":23},{"start":"03:30","end":"04:00","fuel":450,"co2":24},{"start":"04:00","end":"04:30","fuel":360,"co2":12},{"start":"04:30","end":"05:00","fuel":910,"co2":5},{"start":"05:00","end":"05:30","fuel":940,"co2":19},{"start":"05:30","end":"06:00","fuel":750,"co2":13},{"start":"06:00","end":"06:30","fuel":740,"co2":21},{"start":"06:30","end":"07:00","fuel":580,"co2":21},{"start":"07:00","end":"07:30","fuel":670,"co2":11},{"start":"07:30","end":"08:00","fuel":480,"co2":20},{"start":"08:00","end":"08:30","fuel":560,"co2":11},{"start":"08:30","end":"09:00","fuel":560,"co2":11},{"start":"09:00","end":"09:30","fuel":450,"co2":8},{"start":"09:30","end":"10:00","fuel":630,"co2":21},{"start":"10:00","end":"10:30","fuel":560,"co2":17},{"start":"10:30","end":"11:00","fuel":470,"co2":21},{"start":"11:00","end":"11:30","fuel":850,"co2":19},{"start":"11:30","end":"12:00","fuel":970,"co2":5},{"start":"12:00","end":"12:30","fuel":550,"co2":6},{"start":"12:30","end":"13:00","fuel":380,"co2":6},{"start":"13:00","end":"13:30","fuel":540,"co2":21},{"start":"13:30","end":"14:00","fuel":690,"co2":22},{"start":"14:00","end":"14:30","fuel":640,"co2":10},{"start":"14:30","end":"15:00","fuel":380,"co2":14},{"start":"15:00","end":"15:30","fuel":560,"co2":13},{"start":"15:30","end":"16:00","fuel":730,"co2":21},{"start":"16:00","end":"16:30","fuel":940,"co2":25},{"start":"16:30","end":"17:00","fuel":580,"co2":22},{"start":"17:00","end":"17:30","fuel":580,"co2":10},{"start":"17:30","end":"18:00","fuel":510,"co2":24},{"start":"18:00","end":"18:30","fuel":950,"co2":25},{"start":"18:30","end":"19:00","fuel":400,"co2":12},{"start":"19:00","end":"19:30","fuel":860,"co2":9},{"start":"19:30","end":"20:00","fuel":480,"co2":21},{"start":"20:00","end":"20:30","fuel":540,"co2":7},{"start":"20:30","end":"21:00","fuel":390,"co2":16},{"start":"21:00","end":"21:30","fuel":890,"co2":16},{"start":"21:30","end":"22:00","fuel":960,"co2":16},{"start":"22:00","end":"22:30","fuel":540,"co2":24},{"start":"22:30","end":"23:00","fuel":690,"co2":11},{"start":"23:00","end":"23:30","fuel":650,"co2":23},{"start":"23:30","end":"23:59","fuel":860,"co2":9}]},{"day":29,"intervals":[{"start":"00:00","end":"00:30","fuel":640,"co2":17},{"start":"00:30","end":"01:00","fuel":420,"co2":21},{"start":"01:00","end":"01:30","fuel":850,"co2":18},{"start":"01:30","end":"02:00","fuel":490,"co2":24},{"start":"02:00","end":"02:30","fuel":770,"co2":23},{"start":"02:30","end":"03:00","fuel":860,"co2":18},{"start":"03:00","end":"03:30","fuel":850,"co2":11},{"start":"03:30","end":"04:00","fuel":480,"co2":24},{"start":"04:00","end":"04:30","fuel":780,"co2":10},{"start":"04:30","end":"05:00","fuel":470,"co2":19},{"start":"05:00","end":"05:30","fuel":640,"co2":18},{"start":"05:30","end":"06:00","fuel":930,"co2":5},{"start":"06:00","end":"06:30","fuel":770,"co2":18},{"start":"06:30","end":"07:00","fuel":690,"co2":6},{"start":"07:00","end":"07:30","fuel":600,"co2":22},{"start":"07:30","end":"08:00","fuel":710,"co2":21},{"start":"08:00","end":"08:30","fuel":990,"co2":8},{"start":"08:30","end":"09:00","fuel":410,"co2":14},{"start":"09:00","end":"09:30","fuel":800,"co2":12},{"start":"09:30","end":"10:00","fuel":630,"co2":19},{"start":"10:00","end":"10:30","fuel":530,"co2":19},{"start":"10:30","end":"11:00","fuel":510,"co2":6},{"start":"11:00","end":"11:30","fuel":400,"co2":8},{"start":"11:30","end":"12:00","fuel":360,"co2":9},{"start":"12:00","end":"12:30","fuel":460,"co2":9},{"start":"12:30","end":"13:00","fuel":790,"co2":23},{"start":"13:00","end":"13:30","fuel":420,"co2":24},{"start":"13:30","end":"14:00","fuel":700,"co2":14},{"start":"14:00","end":"14:30","fuel":500,"co2":14},{"start":"14:30","end":"15:00","fuel":400,"co2":19},{"start":"15:00","end":"15:30","fuel":850,"co2":8},{"start":"15:30","end":"16:00","fuel":740,"co2":13},{"start":"16:00","end":"16:30","fuel":850,"co2":20},{"start":"16:30","end":"17:00","fuel":750,"co2":18},{"start":"17:00","end":"17:30","fuel":800,"co2":20},{"start":"17:30","end":"18:00","fuel":350,"co2":21},{"start":"18:00","end":"18:30","fuel":360,"co2":19},{"start":"18:30","end":"19:00","fuel":640,"co2":22},{"start":"19:00","end":"19:30","fuel":720,"co2":6},{"start":"19:30","end":"20:00","fuel":720,"co2":22},{"start":"20:00","end":"20:30","fuel":830,"co2":16},{"start":"20:30","end":"21:00","fuel":470,"co2":18},{"start":"21:00","end":"21:30","fuel":490,"co2":10},{"start":"21:30","end":"22:00","fuel":830,"co2":13},{"start":"22:00","end":"22:30","fuel":800,"co2":9},{"start":"22:30","end":"23:00","fuel":900,"co2":19},{"start":"23:00","end":"23:30","fuel":850,"co2":6},{"start":"23:30","end":"23:59","fuel":760,"co2":19}]},{"day":30,"intervals":[{"start":"00:00","end":"00:30","fuel":670,"co2":22},{"start":"00:30","end":"01:00","fuel":630,"co2":24},{"start":"01:00","end":"01:30","fuel":530,"co2":22},{"start":"01:30","end":"02:00","fuel":540,"co2":7},{"start":"02:00","end":"02:30","fuel":870,"co2":16},{"start":"02:30","end":"03:00","fuel":470,"co2":18},{"start":"03:00","end":"03:30","fuel":710,"co2":7},{"start":"03:30","end":"04:00","fuel":570,"co2":11},{"start":"04:00","end":"04:30","fuel":630,"co2":6},{"start":"04:30","end":"05:00","fuel":430,"co2":7},{"start":"05:00","end":"05:30","fuel":840,"co2":12},{"start":"05:30","end":"06:00","fuel":920,"co2":25},{"start":"06:00","end":"06:30","fuel":840,"co2":9},{"start":"06:30","end":"07:00","fuel":570,"co2":20},{"start":"07:00","end":"07:30","fuel":990,"co2":18},{"start":"07:30","end":"08:00","fuel":470,"co2":16},{"start":"08:00","end":"08:30","fuel":790,"co2":10},{"start":"08:30","end":"09:00","fuel":670,"co2":23},{"start":"09:00","end":"09:30","fuel":590,"co2":8},{"start":"09:30","end":"10:00","fuel":550,"co2":6},{"start":"10:00","end":"10:30","fuel":680,"co2":20},{"start":"10:30","end":"11:00","fuel":800,"co2":10},{"start":"11:00","end":"11:30","fuel":550,"co2":17},{"start":"11:30","end":"12:00","fuel":400,"co2":7},{"start":"12:00","end":"12:30","fuel":490,"co2":10},{"start":"12:30","end":"13:00","fuel":1000,"co2":23},{"start":"13:00","end":"13:30","fuel":800,"co2":21},{"start":"13:30","end":"14:00","fuel":820,"co2":22},{"start":"14:00","end":"14:30","fuel":870,"co2":24},{"start":"14:30","end":"15:00","fuel":750,"co2":15},{"start":"15:00","end":"15:30","fuel":640,"co2":12},{"start":"15:30","end":"16:00","fuel":500,"co2":22},{"start":"16:00","end":"16:30","fuel":450,"co2":24},{"start":"16:30","end":"17:00","fuel":440,"co2":14},{"start":"17:00","end":"17:30","fuel":700,"co2":13},{"start":"17:30","end":"18:00","fuel":770,"co2":18},{"start":"18:00","end":"18:30","fuel":780,"co2":15},{"start":"18:30","end":"19:00","fuel":800,"co2":21},{"start":"19:00","end":"19:30","fuel":480,"co2":23},{"start":"19:30","end":"20:00","fuel":850,"co2":10},{"start":"20:00","end":"20:30","fuel":930,"co2":13},{"start":"20:30","end":"21:00","fuel":510,"co2":13},{"start":"21:00","end":"21:30","fuel":450,"co2":5},{"start":"21:30","end":"22:00","fuel":390,"co2":12},{"start":"22:00","end":"22:30","fuel":560,"co2":5},{"start":"22:30","end":"23:00","fuel":890,"co2":20},{"start":"23:00","end":"23:30","fuel":560,"co2":16},{"start":"23:30","end":"23:59","fuel":840,"co2":10}]},{"day":31,"intervals":[{"start":"00:00","end":"00:30","fuel":480,"co2":11},{"start":"00:30","end":"01:00","fuel":520,"co2":22},{"start":"01:00","end":"01:30","fuel":590,"co2":11},{"start":"01:30","end":"02:00","fuel":390,"co2":20},{"start":"02:00","end":"02:30","fuel":580,"co2":14},{"start":"02:30","end":"03:00","fuel":800,"co2":8},{"start":"03:00","end":"03:30","fuel":400,"co2":25},{"start":"03:30","end":"04:00","fuel":420,"co2":25},{"start":"04:00","end":"04:30","fuel":970,"co2":24},{"start":"04:30","end":"05:00","fuel":710,"co2":11},{"start":"05:00","end":"05:30","fuel":820,"co2":7},{"start":"05:30","end":"06:00","fuel":800,"co2":11},{"start":"06:00","end":"06:30","fuel":830,"co2":24},{"start":"06:30","end":"07:00","fuel":510,"co2":11},{"start":"07:00","end":"07:30","fuel":800,"co2":13},{"start":"07:30","end":"08:00","fuel":480,"co2":6},{"start":"08:00","end":"08:30","fuel":550,"co2":25},{"start":"08:30","end":"09:00","fuel":490,"co2":8},{"start":"09:00","end":"09:30","fuel":660,"co2":9},{"start":"09:30","end":"10:00","fuel":820,"co2":11},{"start":"10:00","end":"10:30","fuel":730,"co2":12},{"start":"10:30","end":"11:00","fuel":360,"co2":19},{"start":"11:00","end":"11:30","fuel":560,"co2":21},{"start":"11:30","end":"12:00","fuel":540,"co2":9},{"start":"12:00","end":"12:30","fuel":840,"co2":10},{"start":"12:30","end":"13:00","fuel":540,"co2":6},{"start":"13:00","end":"13:30","fuel":970,"co2":17},{"start":"13:30","end":"14:00","fuel":700,"co2":25},{"start":"14:00","end":"14:30","fuel":870,"co2":5},{"start":"14:30","end":"15:00","fuel":400,"co2":20},{"start":"15:00","end":"15:30","fuel":640,"co2":16},{"start":"15:30","end":"16:00","fuel":980,"co2":12},{"start":"16:00","end":"16:30","fuel":950,"co2":7},{"start":"16:30","end":"17:00","fuel":1000,"co2":13},{"start":"17:00","end":"17:30","fuel":750,"co2":10},{"start":"17:30","end":"18:00","fuel":480,"co2":17},{"start":"18:00","end":"18:30","fuel":990,"co2":12},{"start":"18:30","end":"19:00","fuel":950,"co2":7},{"start":"19:00","end":"19:30","fuel":590,"co2":7},{"start":"19:30","end":"20:00","fuel":670,"co2":7},{"start":"20:00","end":"20:30","fuel":440,"co2":23},{"start":"20:30","end":"21:00","fuel":470,"co2":25},{"start":"21:00","end":"21:30","fuel":780,"co2":12},{"start":"21:30","end":"22:00","fuel":590,"co2":25},{"start":"22:00","end":"22:30","fuel":560,"co2":5},{"start":"22:30","end":"23:00","fuel":890,"co2":20},{"start":"23:00","end":"23:30","fuel":560,"co2":16},{"start":"23:30","end":"23:59","fuel":840,"co2":10}]}];
+
+let currentDay = new Date().getUTCDate();
+let selectedDay = currentDay;
+let isDark = true;
+let clockInterval;
+let lastSlotIndex = -1;
+let tzOffset = 0;
+
+const TIMEZONES = [
+  { label: 'GMT+0 — London, Reykjavik',       offset: 0 },
+  { label: 'GMT+1 — Paris, Berlin, Madrid',    offset: 1 },
+  { label: 'GMT+2 — Athens, Cairo, Helsinki',  offset: 2 },
+  { label: 'GMT+3 — Moscow, Nairobi, Riyadh',  offset: 3 },
+  { label: 'GMT+4 — Dubai, Baku',              offset: 4 },
+  { label: 'GMT+5 — Karachi, Tashkent',        offset: 5 },
+  { label: 'GMT+5:30 — Mumbai, New Delhi',     offset: 5.5 },
+  { label: 'GMT+6 — Dhaka, Almaty',            offset: 6 },
+  { label: 'GMT+7 — Bangkok, Jakarta',         offset: 7 },
+  { label: 'GMT+8 — Beijing, Singapore, Perth',offset: 8 },
+  { label: 'GMT+9 — Tokyo, Seoul',             offset: 9 },
+  { label: 'GMT+10 — Sydney, Brisbane',        offset: 10 },
+  { label: 'GMT+12 — Auckland, Fiji',          offset: 12 },
+  { label: 'GMT-1 — Azores, Cape Verde',       offset: -1 },
+  { label: 'GMT-2 — South Georgia',            offset: -2 },
+  { label: 'GMT-3 — São Paulo, Buenos Aires',  offset: -3 },
+  { label: 'GMT-4 — Halifax, Caracas',         offset: -4 },
+  { label: 'GMT-5 — New York, Toronto',        offset: -5 },
+  { label: 'GMT-6 — Chicago, Mexico City',     offset: -6 },
+  { label: 'GMT-7 — Denver, Phoenix',          offset: -7 },
+  { label: 'GMT-8 — Los Angeles, Vancouver',   offset: -8 },
+  { label: 'GMT-9 — Anchorage',                offset: -9 },
+  { label: 'GMT-10 — Honolulu',                offset: -10 },
+];
+
+function buildTzDropdown() {
+  const sel = document.getElementById('tzSelect');
+  TIMEZONES.forEach(tz => {
+    const opt = document.createElement('option');
+    opt.value = tz.offset;
+    opt.textContent = tz.label;
+    if (tz.offset === 0) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function setTimezone(val) {
+  tzOffset = parseFloat(val);
+  const tz = TIMEZONES.find(t => t.offset === tzOffset);
+  const label = tz ? tz.label.split(' — ')[0] : 'GMT+0';
+  document.getElementById('liveBadgeLabel').textContent = label + ' LIVE';
+  document.getElementById('tableHeaderTime').textContent = 'Time Interval (' + label + ')';
+  lastSlotIndex = -1;
+  renderTable();
+  updateCurrentInfo();
+  updateHeader();
+}
+
+function getLocalTime() {
+  // Returns a Date adjusted to the selected timezone offset
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utcMs + tzOffset * 3600000);
+}
+
+function getCurrentSlotIndex() {
+  // Always use UTC/GMT to find the correct data row — timezone only affects the label
+  const now = new Date();
+  const h = now.getUTCHours(), m = now.getUTCMinutes();
+  return h * 2 + (m >= 30 ? 1 : 0);
+}
+
+function getLocalDay() {
+  // Data is in GMT — use UTC date for day selection
+  return new Date().getUTCDate();
+}
+
+function formatLocalTime(opts) {
+  const local = getLocalTime();
+  return local.toLocaleTimeString('en-GB', opts);
+}
+
+function formatLocalDate(opts) {
+  const local = getLocalTime();
+  return local.toLocaleDateString('en-GB', opts);
+}
+
+function fmt(n) { return '$' + n.toLocaleString(); }
+
+function getStats(day) {
+  const d = DATA.find(x => x.day === day);
+  if (!d) return null;
+  const fuels = d.intervals.map(i => i.fuel);
+  const co2s  = d.intervals.map(i => i.co2);
+  return {
+    fuelMin: Math.min(...fuels), fuelMax: Math.max(...fuels),
+    fuelAvg: Math.round(fuels.reduce((a,b)=>a+b,0)/fuels.length),
+    co2Min:  Math.min(...co2s),  co2Max:  Math.max(...co2s),
+    co2Avg:  Math.round(co2s.reduce((a,b)=>a+b,0)/co2s.length),
+  };
+}
+
+function updateHeader() {
+  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  document.getElementById('dateHeading').textContent = formatLocalDate(opts);
+  const tz = TIMEZONES.find(t => t.offset === tzOffset);
+  const tzLabel = tz ? tz.label.split(' — ')[0] : 'GMT';
+  document.getElementById('dateSubtitle').textContent =
+    `${tzLabel} ${formatLocalTime({hour:'2-digit', minute:'2-digit', second:'2-digit'})} · Day ${getLocalDay()} of month`;
+
+  const s = getStats(currentDay);
+  if (s) {
+    document.getElementById('statPills').innerHTML = `
+      <div class="stat-pill fuel"><div class="label">Fuel Today Avg</div><div class="val">${fmt(s.fuelAvg)}</div></div>
+      <div class="stat-pill fuel"><div class="label">Fuel Today Min</div><div class="val">${fmt(s.fuelMin)}</div></div>
+      <div class="stat-pill fuel"><div class="label">Fuel Today Max</div><div class="val">${fmt(s.fuelMax)}</div></div>
+      <div class="stat-pill co2"><div class="label">CO₂ Today Avg</div><div class="val">${fmt(s.co2Avg)}</div></div>
+    `;
+  }
+}
+
+function updateCurrentInfo() {
+  const d = DATA.find(x => x.day === selectedDay);
+  if (!d) return;
+  const idx = selectedDay === getLocalDay() ? getCurrentSlotIndex() : null;
+  const iv = idx !== null ? d.intervals[idx] : null;
+
+  if (iv) {
+    const end = d.intervals[(idx + 1) % 48]?.start || '00:00';
+    const ciStart = shiftTimeLabel(iv.start, tzOffset);
+    const ciEnd   = shiftTimeLabel(end, tzOffset);
+    document.getElementById('currentInfo').innerHTML = `
+      <div><div class="ci-label">Current Interval</div><div class="ci-time">⏱ ${ciStart} – ${ciEnd}</div></div>
+      <div class="ci-prices">
+        <div class="ci-price"><div class="ci-plabel">Fuel</div><div class="ci-pval ci-fuel">${fmt(iv.fuel)}</div></div>
+        <div class="ci-price"><div class="ci-plabel">CO₂</div><div class="ci-pval ci-co2c">${fmt(iv.co2)}</div></div>
+      </div>
+    `;
+    document.getElementById('currentInfo').style.display = 'flex';
+  } else {
+    document.getElementById('currentInfo').style.display = 'none';
+  }
+}
+
+function shiftTimeLabel(timeStr, offsetHours) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const totalMins = h * 60 + m + Math.round(offsetHours * 60);
+  const wrapped = ((totalMins % 1440) + 1440) % 1440; // wrap around 24h
+  const nh = Math.floor(wrapped / 60);
+  const nm = wrapped % 60;
+  return String(nh).padStart(2,'0') + ':' + String(nm).padStart(2,'0');
+}
+
+function renderTable() {
+  const d = DATA.find(x => x.day === selectedDay);
+  if (!d) return;
+  const currentIdx = selectedDay === getLocalDay() ? getCurrentSlotIndex() : -1;
+  const body = document.getElementById('tableBody');
+
+  // Only shift time labels — prices stay fixed to their GMT row
+  body.innerHTML = d.intervals.map(function(iv, i) {
+    var isCurrent = (i === currentIdx);
+    var off = tzOffset; // capture current offset
+    var shiftedStart = shiftTimeLabel(iv.start, off);
+    var shiftedEnd = shiftTimeLabel(d.intervals[(i + 1) % 48].start, off);
+    var cls = 'table-row' + (i%2 ? ' alt' : '') + (isCurrent ? ' current-row' : '');
+    var nowTag = isCurrent ? '<span class="now-tag">NOW</span> ' : '';
+    return '<div class="' + cls + '">' +
+      '<div class="time-cell">' + nowTag + shiftedStart + ' – ' + shiftedEnd + '</div>' +
+      '<div class="price-cell fuel-col">' + fmt(iv.fuel) + '</div>' +
+      '<div class="price-cell co2-col">' + fmt(iv.co2) + '</div>' +
+      '</div>';
+  }).join('');
+
+  // Scroll to current row
+  if (currentIdx >= 0) {
+    setTimeout(() => {
+      const currentRow = body.querySelector('.current-row');
+      if (currentRow) currentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+}
+
+function renderDayButtons() {
+  const wrap = document.getElementById('dayBtns');
+  wrap.innerHTML = DATA.map(d => {
+    const isToday = d.day === currentDay;
+    const isActive = d.day === selectedDay;
+    return `<button class="day-btn${isToday?' today-day':''}${isActive?' active':''}"
+      onclick="selectDay(${d.day})">${d.day}</button>`;
+  }).join('');
+}
+
+function renderSummary() {
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = DATA.map(d => {
+    const s = getStats(d.day);
+    const isActive = d.day === selectedDay;
+    return `<div class="summary-card${isActive?' active-card':''}" onclick="selectDay(${d.day})">
+      <div class="card-day">Day ${d.day}${d.day === currentDay ? ' · Today' : ''}</div>
+      <div class="card-prices">
+        <div class="card-price"><span class="cp-label">Fuel avg</span><span class="cp-val cp-fuel">${fmt(s.fuelAvg)}</span></div>
+        <div class="card-price"><span class="cp-label">CO₂ avg</span><span class="cp-val cp-co2">${fmt(s.co2Avg)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectDay(day) {
+  selectedDay = day;
+  renderDayButtons();
+  renderTable();
+  renderSummary();
+  updateCurrentInfo();
+}
+
+function tick() {
+  const newDay = getLocalDay();
+  if (newDay !== currentDay) {
+    currentDay = newDay;
+    if (selectedDay === currentDay - 1) selectDay(currentDay);
+  }
+  updateHeader();
+  updateCurrentInfo();
+
+  // Only re-render table if the 30-min slot has actually changed
+  if (selectedDay === currentDay) {
+    const slotNow = getCurrentSlotIndex();
+    if (slotNow !== lastSlotIndex) {
+      lastSlotIndex = slotNow;
+      renderTable();
+    }
+  }
+
+  document.getElementById('footer').textContent =
+    `Last updated: ${formatLocalTime({hour:'2-digit', minute:'2-digit', second:'2-digit'})} · All prices in USD · Data covers ${DATA.length} days`;
+}
+
+// Init
+buildTzDropdown();
+lastSlotIndex = getCurrentSlotIndex();
+currentDay = getLocalDay();
+selectedDay = currentDay;
+updateHeader();
+renderDayButtons();
+updateCurrentInfo();
+renderTable();
+renderSummary();
+document.getElementById('footer').textContent = `All prices in USD · Data covers ${DATA.length} days`;
+clockInterval = setInterval(tick, 1000);
+</script>
+</body>
+</html>
